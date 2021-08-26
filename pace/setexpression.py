@@ -9,6 +9,12 @@ class SetExpr(ABC):
     def __and__(self, b):
         return Intersect(self, b)
 
+    def __sub__(self, b):
+        return Diff(self, b)
+
+    def __xor__(self, b):
+        return SymDiff(self, b)
+
     def __invert__(self):
         return Complement(self)
 
@@ -20,6 +26,7 @@ class SetExpr(ABC):
 @dataclass
 class Set(SetExpr):
     name: str
+
     def run_with(self, f):
         return f(self.name)
 
@@ -34,21 +41,27 @@ class BinaryOp(SetExpr):
     a: SetExpr
     b: SetExpr
 
-    
-@dataclass
+
 class Union(BinaryOp):
     def run_with(self, f):
         return self.a.run_with(f) | self.b.run_with(f)
 
 
-@dataclass
 class Intersect(BinaryOp):
     def run_with(self, f):
         return self.a.run_with(f) & self.b.run_with(f)
 
 
-@dataclass
+class Diff(BinaryOp):
+    def run_with(self, f):
+        return self.a.run_with(f) & ~self.b.run_with(f)
+
+
+class SymDiff(BinaryOp):
+    def run_with(self, f):
+        return self.a.run_with(f) ^ self.b.run_with(f)
+
+
 class Complement(UnaryOp):
     def run_with(self, f):
         return ~self.a.run_with(f)
-
