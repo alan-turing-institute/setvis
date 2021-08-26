@@ -28,9 +28,11 @@ class Missingness(object):
             self._check()
 
     def _check(self):
-        """Check that the DataFrame 'missingness' has a column
-        'missingness_pattern' with a foreign key relationship to
-        'pattern'.
+        """Validate the class data
+
+        In particular: Check that the DataFrame '_missingness' has a
+        column 'pattern_key' with a foreign key relationship to
+        '_pattern'.
 
         """
         assert self._pattern_key in self._missingness.keys()
@@ -40,15 +42,21 @@ class Missingness(object):
             .all()
         )
 
-    def pattern_counts(
+    def counts(
         self,
         count_col_name: str = "_count",
         selection: Optional[Sequence] = None,
-    ):
-        """Return the missingness patterns of the data, along with the count
-        of each.
+    ) -> pd.DataFrame:
+        """Return the missingness patterns of the data, and the count of each
+
+        :param count_col_name: The name of the column in the result
+        holding the count data
+
+        :return: A dataframe containing the missingness patterns and
+        the number of times each appears in the dataset
 
         """
+
         selection1 = selection or self._missingness.index
 
         counts = pd.DataFrame(
@@ -61,13 +69,18 @@ class Missingness(object):
         return self._pattern.join(counts, how="right")
 
     def _run_set(self, pattern_spec):
+        """Evaluate a SetExpr for the current instance"""
+
         return pattern_spec.run_with(self._pattern.__getitem__)
 
-    def pattern_matches(
+    def matches(
         self, pattern_spec: SetExpr, row_selection: Optional[Sequence] = None,
     ) -> pd.Series:
-        """Return a boolean series indicating where the data matches the given
-        missingness pattern (as pattern_spec)
+        """Indicate which records match the given missingness pattern
+
+        Return a boolean series with indices from :param
+        row_selection:, which is True for each index where the data
+        matches the given missingness pattern :param pattern_spec:.
 
         """
         row_selection1 = row_selection or self._missingness.index
@@ -78,10 +91,12 @@ class Missingness(object):
         )
 
     def select_columns(self, col_selection) -> pd.DataFrame:
-        """Return a new Missingness object based on the given column selection
-        (which must be a subset of columns of the current object).
-        Patterns that are identical under the selection are
-        consolidated.
+        """Return a new Missingness object for a subset of the columns
+
+        A new Missingness object is constructed from the given columns
+        :param col_selection: (which must be a subset of columns of
+        the current object).  Patterns that are identical under the
+        selection are consolidated.
 
         """
         new_groups = self._pattern[col_selection].groupby(
@@ -124,18 +139,9 @@ class Missingness(object):
 
 
 def heatmap_data(m: Missingness, count_col="_count"):
-    counts = m.pattern_counts(count_col)
+    counts = m.counts(count_col)
     return (
         counts.astype(int)
         .mul(counts[count_col], axis=0)
         .drop(count_col, axis=1)
     )
-
-
-## TODO
-
-# add a selection argument to everything
-
-# separate class for keeping track of selection and history
-
-# method for looking up based on various selections
