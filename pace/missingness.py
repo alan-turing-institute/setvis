@@ -105,7 +105,7 @@ class Missingness(object):
         df: pd.DataFrame,
         pattern_key: str = "pattern_key",
         is_missing: Callable[[Any], bool] = pd.isnull,
-    ) -> Missingness:
+    ):
         grouped = is_missing(df).groupby(list(df))
         return cls(
             missingness=pd.DataFrame(grouped.ngroup(), columns=[pattern_key]),
@@ -114,12 +114,12 @@ class Missingness(object):
         )
 
     @classmethod
-    def from_csv(cls, filepath_or_buffer, *args, **kwargs) -> Missingness:
+    def from_csv(cls, filepath_or_buffer, *args, **kwargs):
         df = pd.read_csv(filepath_or_buffer, *args, **kwargs)
         return cls.from_data_frame(df)
 
     @classmethod
-    def from_postgres(cls, conn) -> Missingness:
+    def from_postgres(cls, conn):
         raise NotImplementedError()
 
 
