@@ -73,20 +73,15 @@ class Missingness(object):
 
         return pattern_spec.run_with(self._pattern.__getitem__)
 
-    def matches(
-        self, pattern_spec: SetExpr, row_selection: Optional[Sequence] = None,
-    ) -> pd.Series:
+    def matches(self, pattern_spec: SetExpr) -> pd.Series:
         """Indicate which records match the given missingness pattern
 
-        Return a boolean series with indices from :param
-        row_selection:, which is True for each index where the data
-        matches the given missingness pattern :param pattern_spec:.
+        Return a boolean series, which is True for each index where
+        the data matches the given missingness pattern :param
+        pattern_spec:.
 
         """
-        row_selection1 = row_selection or self._missingness.index
-        selected = self._missingness.loc[row_selection1]
-
-        return selected[self._pattern_key].isin(
+        return self._missingness[self._pattern_key].isin(
             self._pattern[self._run_set(pattern_spec)].index
         )
 
