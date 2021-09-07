@@ -1,5 +1,6 @@
+import numpy as np
 import pandas as pd
-from typing import Sequence, Callable, Optional, Any
+from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
 
 # alias for Set
@@ -19,7 +20,7 @@ class Missingness(object):
         check: bool = True,
         pattern_key: str = "pattern_key",
     ):
-        self._pattern = pattern
+        self._pattern = pattern.rename_axis(pattern_key)
         self._missingness = missingness
 
         self._pattern_key = pattern_key
@@ -42,10 +43,16 @@ class Missingness(object):
             .all()
         )
 
+    def column_labels(self) -> List[Any]:
+        return list(self._pattern)
+
+    def _pattern_selection_all(self):
+        return np.ones(self._pattern.shape[0], dtype=bool)
+
     def counts(
         self,
         count_col_name: str = "_count",
-        selection: Optional[Sequence] = None,
+        pattern_selection: Optional[Sequence] = None,
     ) -> pd.DataFrame:
         """Return the missingness patterns of the data, and the count of each
 
@@ -56,34 +63,44 @@ class Missingness(object):
         the number of times each appears in the dataset
 
         """
+        if pattern_selection is None:
+            pattern_selection = self._pattern_selection_all()
 
-        selection1 = selection or self._missingness.index
-
-        counts = pd.DataFrame(
-            self._missingness.loc[selection1]
-            .groupby(self._pattern_key)
-            .size(),
-            columns=[count_col_name],
+        counts = (
+            self._missingness.value_counts()
+            .rename(count_col_name)
+            .squeeze()
         )
 
-        return self._pattern.join(counts, how="right")
+        return self._pattern[pattern_selection].join(counts, how="left")
 
-    def _run_set(self, pattern_spec):
-        """Evaluate a SetExpr for the current instance"""
+    def _compute_set(self, pattern_spec: SetExpr, pattern_selection):
+        """Evaluate the SetExpr :pattern_spec: for the current instance, for
+        the given selection"""
 
-        return pattern_spec.run_with(self._pattern.__getitem__)
+        return pattern_spec.run_with(
+            self._pattern[pattern_selection].__getitem__
+        )
 
-    def matches(self, pattern_spec: SetExpr) -> pd.Series:
+    def matches(
+        self, pattern_spec: SetExpr, pattern_selection=None
+    ) -> pd.Series:
         """Indicate which records match the given missingness pattern
 
         Return a boolean series, which is True for each index where
         the data matches the given missingness pattern :param
-        pattern_spec:.
+        pattern_spec:
 
         """
-        return self._missingness[self._pattern_key].isin(
-            self._pattern[self._run_set(pattern_spec)].index
-        )
+        if pattern_selection is None:
+            pattern_selection = self._pattern_selection_all()
+
+        pattern_matches = self._compute_set(pattern_spec, pattern_selection)
+
+        # Convert Boolean array of matches to series of matching indices
+        matching_pattern_keys = pattern_matches.index[pattern_matches]
+
+        return self._missingness[self._pattern_key].isin(matching_pattern_keys)
 
     def select_columns(self, col_selection) -> pd.DataFrame:
         """Return a new Missingness object for a subset of the columns
