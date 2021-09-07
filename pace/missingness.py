@@ -161,8 +161,8 @@ class Missingness(object):
         raise NotImplementedError()
 
 
-def heatmap_data(m: Missingness, count_col="_count"):
-    counts = m.counts(count_col)
+def heatmap_data(m: Missingness, count_col="_count", pattern_selection=None):
+    counts = m.counts(count_col, pattern_selection)
     return (
         counts.astype(int)
         .mul(counts[count_col], axis=0)
