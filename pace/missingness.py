@@ -173,7 +173,10 @@ def heatmap_data(m: Missingness, count_col="_count", pattern_selection=None):
 def value_bar_chart_data(m: Missingness, pattern_selection=None):
     labels = m.column_labels()
     return pd.DataFrame(
-        (m.matches(Col(label), pattern_selection).sum() for label in labels),
+        (
+            m.matches(Col(label), pattern_selection).count()["_index"]
+            for label in labels
+        ),
         index=labels,
         columns=["_count"],
     )
