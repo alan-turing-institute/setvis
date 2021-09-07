@@ -66,7 +66,7 @@ class Missingness(object):
 
         counts = self._missingness.index.value_counts().rename(count_col_name)
 
-        return self._pattern[pattern_selection].join(counts)
+        return self._pattern.loc[pattern_selection].join(counts)
 
     def _compute_set(self, pattern_spec: SetExpr, pattern_selection):
         """Evaluate the SetExpr :pattern_spec: for the current instance, for
