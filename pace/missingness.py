@@ -107,7 +107,7 @@ class Missingness(object):
             suffixes=("_", None),
         ).drop(self._pattern_key + "_", axis=1)
 
-        return Missingness(new_pattern, new_missingness)
+        return self.__class__(new_pattern, new_missingness)
 
     @classmethod
     def from_data_frame(
