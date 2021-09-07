@@ -19,11 +19,13 @@ class Missingness(object):
         missingness: pd.DataFrame,
         check: bool = True,
         pattern_key: str = "pattern_key",
+        index_col_label: str = "_index",
     ):
         self._pattern = pattern.rename_axis(pattern_key)
         self._missingness = missingness
 
         self._pattern_key = pattern_key
+        self._index_col_label = index_col_label
 
         if check:
             self._check()
@@ -36,12 +38,8 @@ class Missingness(object):
         '_pattern'.
 
         """
-        assert self._pattern_key in self._missingness.keys()
-        assert (
-            self._missingness[self._pattern_key]
-            .isin(self._pattern.index)
-            .all()
-        )
+        assert self._pattern_key == self._missingness.index.name
+        assert self._missingness.index.isin(self._pattern.index).all()
 
     def column_labels(self) -> List[Any]:
         return list(self._pattern)
@@ -66,13 +64,9 @@ class Missingness(object):
         if pattern_selection is None:
             pattern_selection = self._pattern_selection_all()
 
-        counts = (
-            self._missingness.value_counts()
-            .rename(count_col_name)
-            .squeeze()
-        )
+        counts = self._missingness.index.value_counts().rename(count_col_name)
 
-        return self._pattern[pattern_selection].join(counts, how="left")
+        return self._pattern[pattern_selection].join(counts)
 
     def _compute_set(self, pattern_spec: SetExpr, pattern_selection):
         """Evaluate the SetExpr :pattern_spec: for the current instance, for
@@ -100,7 +94,17 @@ class Missingness(object):
         # Convert Boolean array of matches to series of matching indices
         matching_pattern_keys = pattern_matches.index[pattern_matches]
 
-        return self._missingness[self._pattern_key].isin(matching_pattern_keys)
+        ## performance of loc on a list with a non-unique index is poor
+        ## instead, map over each separately and concat
+        # return self._missingness.loc[matching_pattern_keys]
+        if matching_pattern_keys.empty:
+            return pd.DataFrame({self._index_col_label: []}).rename_axis(
+                self._pattern_key
+            )
+        else:
+            return pd.concat(
+                self._missingness.loc[k] for k in matching_pattern_keys
+            )
 
     def select_columns(self, col_selection) -> pd.DataFrame:
         """Return a new Missingness object for a subset of the columns
@@ -114,15 +118,14 @@ class Missingness(object):
         new_groups = self._pattern[col_selection].groupby(
             col_selection, as_index=False
         )
+
         new_pattern = new_groups.first()
+
         group_mapping = new_groups.ngroup().rename(self._pattern_key)
 
-        new_missingness = self._missingness.merge(
-            group_mapping,
-            left_on=self._pattern_key,
-            right_index=True,
-            suffixes=("_", None),
-        ).drop(self._pattern_key + "_", axis=1)
+        new_missingness = self._missingness.set_index(
+            self._missingness.index.map(group_mapping)
+        ).sort_index()
 
         return self.__class__(new_pattern, new_missingness)
 
@@ -131,13 +134,21 @@ class Missingness(object):
         cls,
         df: pd.DataFrame,
         pattern_key: str = "pattern_key",
+        index_col_label: str = "_index",
         is_missing: Callable[[Any], bool] = pd.isnull,
     ):
         grouped = is_missing(df).groupby(list(df))
+        missingness = (
+            pd.DataFrame(grouped.ngroup(), columns=[pattern_key])
+            .rename_axis(index_col_label)
+            .reset_index()
+            .set_index(pattern_key)
+            .sort_index()
+        )
+        pattern = pd.DataFrame(grouped.indices.keys(), columns=df.columns)
+
         return cls(
-            missingness=pd.DataFrame(grouped.ngroup(), columns=[pattern_key]),
-            pattern=pd.DataFrame(grouped.indices.keys(), columns=df.columns),
-            pattern_key=pattern_key,
+            missingness=missingness, pattern=pattern, pattern_key=pattern_key
         )
 
     @classmethod
