@@ -104,16 +104,20 @@ class Missingness(object):
         # Convert Boolean array of matches to series of matching indices
         matching_pattern_keys = pattern_matches.index[pattern_matches]
 
-        ## performance of loc on a list with a non-unique index is poor
-        ## instead, map over each separately and concat
-        # return self._missingness.loc[matching_pattern_keys]
+        # np.concatenate needs at least one array, so handle empty case
+        # separately
         if matching_pattern_keys.empty:
-            return pd.DataFrame({self._index_col_label: []}).rename_axis(
-                self._pattern_key
-            )
+            return np.array([], dtype=np.int64)
         else:
-            return pd.concat(
-                self._missingness.loc[k] for k in matching_pattern_keys
+            return np.concatenate(
+                [
+                    # performance of indexing with a list using loc is
+                    # poor when the df has a non-unique index:
+                    # instead, apply loc to each separate index and
+                    # concatenate
+                    self._missingness.loc[k].to_numpy().reshape(-1)
+                    for k in matching_pattern_keys
+                ],
             )
 
     def select_columns(self, col_selection):
