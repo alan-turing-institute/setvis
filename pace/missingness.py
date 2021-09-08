@@ -195,8 +195,8 @@ class Missingness(object):
         raise NotImplementedError()
 
 
-def heatmap_data(m: Missingness, count_col="_count", pattern_selection=None):
-    counts = m.counts(count_col, pattern_selection)
+def heatmap_data(m: Missingness, count_col="_count"):
+    counts = m.counts(count_col)
     return (
         counts.astype(int)
         .mul(counts[count_col], axis=0)
@@ -204,13 +204,9 @@ def heatmap_data(m: Missingness, count_col="_count", pattern_selection=None):
     )
 
 
-def value_bar_chart_data(m: Missingness, pattern_selection=None):
+def value_bar_chart_data(m: Missingness):
     labels = m.column_labels()
     return pd.DataFrame(
-        (
-            m.matches(Col(label), pattern_selection).count()["_index"]
-            for label in labels
-        ),
+        {"_count": [m.count_matches(Col(label)) for label in labels]},
         index=labels,
-        columns=["_count"],
     )
