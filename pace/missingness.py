@@ -74,7 +74,7 @@ class Missingness(object):
             pattern_selection = self._pattern_selection_all()
 
         new_pattern = self._pattern.loc[pattern_selection]
-        new_missingness = self._missingness.loc[pattern_selection]
+        new_missingness = self._missingness.loc[pattern_selection].sort_index()
 
         return self.__class__(
             new_pattern,
