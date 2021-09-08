@@ -155,7 +155,13 @@ class Missingness(object):
             self._missingness.index.map(group_mapping)
         ).sort_index()
 
-        return self.__class__(new_pattern, new_missingness)
+        return self.__class__(
+            new_pattern,
+            new_missingness,
+            check=False,
+            pattern_key=self._pattern_key,
+            index_col_label=self._index_col_label,
+        )
 
     @classmethod
     def from_data_frame(
