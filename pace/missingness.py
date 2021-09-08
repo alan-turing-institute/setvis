@@ -44,7 +44,7 @@ class Missingness(object):
     def column_labels(self) -> List[Any]:
         return list(self._pattern)
 
-    def _pattern_selection_all(self):
+    def _pattern_selection_all(self) -> np.ndarray:
         return np.ones(self._pattern.shape[0], dtype=bool)
 
     def counts(self, count_col_name: str = "_count",) -> pd.DataFrame:
@@ -90,7 +90,7 @@ class Missingness(object):
 
         return pattern_spec.run_with(self._pattern.__getitem__)
 
-    def matches(self, pattern_spec: SetExpr) -> pd.Series:
+    def matches(self, pattern_spec: SetExpr) -> np.ndarray:
         """Indicate which records match the given missingness pattern
 
         Return a boolean series, which is True for each index where
