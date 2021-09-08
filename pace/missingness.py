@@ -120,6 +120,20 @@ class Missingness(object):
                 ],
             )
 
+    def count_matches(self, pattern_spec: SetExpr) -> int:
+        """Equivalent to len(self.matches(pattern_spec)), but could have a
+        performance benefit
+        """
+
+        pattern_matches = self._compute_set(pattern_spec)
+
+        # Convert Boolean array of matches to series of matching indices
+        matching_pattern_keys = pattern_matches.index[pattern_matches]
+
+        return np.sum(
+            len(self._missingness.loc[k]) for k in matching_pattern_keys
+        )
+
     def select_columns(self, col_selection):
         """Return a new Missingness object for a subset of the columns
 
