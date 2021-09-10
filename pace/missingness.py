@@ -8,7 +8,18 @@ class Col(Set):
     pass
 
 
-class Missingness(object):
+def _invert_selection(universe, selection):
+    if selection is None:
+        return np.array([])
+    elif len(selection) == 0:
+        return None
+    else:
+        # equivalent to np.setdiff1d(universe, selection), but
+        # setdiff1d doesn't preserve element order
+        return np.array(universe)[~np.in1d(universe, selection)]
+
+
+class Missingness:
 
     _pattern: pd.DataFrame
     _missingness: pd.DataFrame
@@ -44,10 +55,13 @@ class Missingness(object):
     def column_labels(self) -> List[Any]:
         return list(self._pattern)
 
-    def _pattern_selection_all(self) -> np.ndarray:
-        return np.ones(self._pattern.shape[0], dtype=bool)
+    def patterns(self):
+        return self._pattern
 
-    def counts(self, count_col_name: str = "_count",) -> pd.DataFrame:
+    def record_indices(self):
+        return self._missingness[self._index_col_label].values
+
+    def counts(self, count_col_name: str = "_count") -> pd.DataFrame:
         """Return the missingness patterns of the data, and the count of each
 
         :param count_col_name: The name of the column in the result
@@ -62,19 +76,20 @@ class Missingness(object):
 
         return self._pattern.join(counts)
 
-    def select_patterns(self, pattern_selection: Optional[Sequence] = None):
-        """Return a new Missingness object for a subset of the patterns
+    def select_patterns(self, selection: Optional[Sequence] = None):
+        """Return a Missingness object with the given subset of patterns
 
-        A new Missingness object is constructed from the given patterns
-        :param pattern_selection: (which must be a subset of patterns of
-        the current object). 
+        A Missingness object is returned, based on the given patterns
+        in :param selection: (which must be a subset of patterns of
+        the current object).  A selection of None corresponds to every
+        pattern being selected, and the original object is returned.
 
         """
-        if pattern_selection is None:
-            pattern_selection = self._pattern_selection_all()
+        if selection is None:
+            return self
 
-        new_pattern = self._pattern.loc[pattern_selection]
-        new_missingness = self._missingness.loc[pattern_selection].sort_index()
+        new_pattern = self._pattern.loc[selection]
+        new_missingness = self._missingness.loc[selection].sort_index()
 
         return self.__class__(
             new_pattern,
@@ -84,10 +99,26 @@ class Missingness(object):
             index_col_label=self._index_col_label,
         )
 
-    def _compute_set(self, pattern_spec: SetExpr):
-        """Evaluate the SetExpr :pattern_spec: for the current instance
-        """
+    def drop_patterns(self, selection: Optional[Sequence[int]]):
+        if selection and len(selection) == 0:
+            return self
+        else:
+            return self.select_patterns(
+                self.invert_pattern_selection(selection)
+            )
 
+    def invert_pattern_selection(self, selection):
+        return _invert_selection(self._pattern.index.values, selection)
+
+    def invert_record_selection(self, selection):
+        return _invert_selection(self.record_indices(), selection)
+
+    def invert_column_selection(self, selection):
+        s = _invert_selection(self.column_labels(), selection)
+        return s if s is None else list(s)
+
+    def _compute_set(self, pattern_spec: SetExpr):
+        """Evaluate the SetExpr :pattern_spec: for the current instance"""
         return pattern_spec.run_with(self._pattern.__getitem__)
 
     def matches(self, pattern_spec: SetExpr) -> np.ndarray:
@@ -130,21 +161,24 @@ class Missingness(object):
         # Convert Boolean array of matches to series of matching indices
         matching_pattern_keys = pattern_matches.index[pattern_matches]
 
-        return np.sum(
+        return sum(
             len(self._missingness.loc[k]) for k in matching_pattern_keys
         )
 
-    def select_columns(self, col_selection):
+    def select_columns(self, selection: Optional[List] = None):
         """Return a new Missingness object for a subset of the columns
 
         A new Missingness object is constructed from the given columns
-        :param col_selection: (which must be a subset of columns of
-        the current object).  Patterns that are identical under the
+        :param selection: (which must be a subset of columns of the
+        current object).  Patterns that are identical under the
         selection are consolidated.
 
         """
-        new_groups = self._pattern[col_selection].groupby(
-            col_selection, as_index=False
+        if selection is None:
+            return self
+
+        new_groups = self._pattern[selection].groupby(
+            selection, as_index=False
         )
 
         new_pattern = new_groups.first()
@@ -162,6 +196,38 @@ class Missingness(object):
             pattern_key=self._pattern_key,
             index_col_label=self._index_col_label,
         )
+
+    def drop_columns(self, selection: Optional[List]):
+        if selection and len(selection) == 0:
+            return self
+        else:
+            return self.select_columns(self.invert_column_selection(selection))
+
+    def select_records(self, selection: Optional[Sequence[int]] = None):
+        if selection is None:
+            return self
+
+        # no need to sort_index, since selection is returned in index order
+        new_missingness = self._missingness[
+            self._missingness[self._index_col_label].isin(selection)
+        ]
+
+        # discard unused pattern indices, but do not reindex
+        new_pattern = self._pattern.loc[new_missingness.index.unique()]
+
+        return self.__class__(
+            new_pattern,
+            new_missingness,
+            check=True,
+            pattern_key=self._pattern_key,
+            index_col_label=self._index_col_label,
+        )
+
+    def drop_records(self, selection: Optional[Sequence[int]]):
+        if selection and len(selection) == 0:
+            return self
+        else:
+            return self.select_records(self.invert_record_selection(selection))
 
     @classmethod
     def from_data_frame(
