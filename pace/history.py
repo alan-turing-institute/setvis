@@ -46,6 +46,8 @@ class SelectionHistory:
         self._selections: Dict[str, SubSelection] = {}
 
     def new_selection(self, name, base_selection=None):
+        # if name already exists in _selections, reset the active
+        # selection to the default, of everything in base_selection
         self._selections[name] = SubSelection(base_selection)
 
     # Can't straightforwardly provide an interface specifying what
