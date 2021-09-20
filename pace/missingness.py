@@ -100,7 +100,7 @@ class Missingness:
         )
 
     def drop_patterns(self, selection: Optional[Sequence[int]]):
-        if selection and len(selection) == 0:
+        if selection is not None and len(selection) == 0:
             return self
         else:
             return self.select_patterns(
@@ -198,7 +198,7 @@ class Missingness:
         )
 
     def drop_columns(self, selection: Optional[List]):
-        if selection and len(selection) == 0:
+        if selection is not None and len(selection) == 0:
             return self
         else:
             return self.select_columns(self.invert_column_selection(selection))
@@ -224,7 +224,7 @@ class Missingness:
         )
 
     def drop_records(self, selection: Optional[Sequence[int]]):
-        if selection and len(selection) == 0:
+        if selection is not None and len(selection) == 0:
             return self
         else:
             return self.select_records(self.invert_record_selection(selection))
