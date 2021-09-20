@@ -15,7 +15,7 @@ import base64
 from weakref import WeakValueDictionary
 from IPython.display import Javascript, display
 from ipywidgets import widgets
-from typing import Any, Sequence, Dict, Tuple
+from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
 
 # Set up logging
@@ -24,10 +24,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class MissingnessPlotBase:
-    def __init__(self, data: Missingness):
+    def __init__(
+        self, data: Missingness, initial_selection: Selection = Selection()
+    ):
         raise NotImplementedError()
 
-    def plot(self, initial_selection: Selection) -> bokeh.plotting.Figure:
+    def plot(self) -> bokeh.plotting.Figure:
         raise NotImplementedError()
 
     def selection_to_plot_indices(self, selection: Selection) -> Sequence[int]:
@@ -38,11 +40,15 @@ class MissingnessPlotBase:
 
 
 class ValueBarChart(MissingnessPlotBase):
-    def __init__(self, data: Missingness):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
 
         self.source = ColumnDataSource(
             missingness.value_bar_chart_data(data).reset_index()
+        )
+
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
         )
 
         self.bar_width = 0.5
@@ -52,7 +58,7 @@ class ValueBarChart(MissingnessPlotBase):
         self.title = "Value bar chart"
         self.ylabel = "Number of missing values"
 
-    def plot(self, initial_selection=Selection()) -> bokeh.plotting.Figure:
+    def plot(self) -> bokeh.plotting.Figure:
         p = figure(
             title=self.title,
             tools=self.tools,
@@ -70,18 +76,25 @@ class ValueBarChart(MissingnessPlotBase):
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
         col_labels = self._data.column_labels()
+
         return Selection(
             columns=self._data.invert_column_selection(
                 [col_labels[i] for i in indices]
             )
         )
 
-    def selection_to_plot_indices(self):
-        pass
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        col_labels = self._data.column_labels()
+        col_indices_np_tuple = np.where(
+            np.in1d(col_labels, selection.columns, invert=True)
+        )
+        col_indices = list(col_indices_np_tuple[0])
+
+        return col_indices
 
 
 class CombinationHeatmap(MissingnessPlotBase):
-    def __init__(self, data: Missingness):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
 
         heatmap_data = missingness.heatmap_data(data)
@@ -91,6 +104,10 @@ class CombinationHeatmap(MissingnessPlotBase):
             id_vars=["pattern_key", "pattern_key_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
+
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
+        )
 
         self.x_range = list(heatmap_data)
         self.y_range = list(heatmap_data["pattern_key_str"].values)
@@ -105,7 +122,7 @@ class CombinationHeatmap(MissingnessPlotBase):
         self.fill = "#cccccc"
         self.grid_visible = False
 
-    def plot(self, initial_selection=None) -> bokeh.plotting.Figure:
+    def plot(self) -> bokeh.plotting.Figure:
         p = figure(
             title="Combination heatmap",
             width=self.width,
@@ -145,11 +162,27 @@ class CombinationHeatmap(MissingnessPlotBase):
         pattern_key = self._data.patterns().index.values
         include = list({pattern_key[i % n_combinations] for i in indices})
         exclude = self._data.invert_pattern_selection(include)
+
         return Selection(patterns=exclude)
 
-    def selection_to_plot_indices(self):
-        pass
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        n_columns = len(self._data.column_labels())
+        n_patterns = len(self._data.patterns())
 
+        pattern_indices_tuple = np.where(
+            np.in1d(
+                self._data.patterns().index, selection.patterns, invert=True
+            )
+        )
+        pattern_indices = pattern_indices_tuple[0]
+
+        box_indices = [
+            j * n_patterns + i
+            for j in range(n_columns)
+            for i in pattern_indices
+        ]
+
+        return box_indices
 
 
 class PlotSession:
