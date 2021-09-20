@@ -151,13 +151,29 @@ class CombinationHeatmap(MissingnessPlotBase):
         pass
 
 
-class PlotMissingData:
-    """Class for plotting missing data"""
 
+class PlotSession:
+    """Class representing an interactive plotting session in a Jupyter notebook
+
+    A session contains a sequence of named plots.  New selections can
+    be made interactively from the plots, and other plots added to the
+    session.
+
+    """
+
+    # The object holding the named plots that the user creates with
+    # add_plot
     _selection_history: SelectionHistory
+
+    # A dictionary from (name, tab_name) to a Bokeh plot object. Here
+    # 'name' is the user provided name of the selection being plotted
+    # (it is also a key of _selection_history) -- this identifies a
+    # particular group of Tabs -- and 'tab_name' is the name of a
+    # particular tab (one of "value_bar_chart", "combination_heatmap",
+    # ...)
     _plots: Dict[Tuple[Any, Any], MissingnessPlotBase]
 
-    # A class-member dictionary holding PlotMissingData objects, keyed
+    # A class-member dictionary holding PlotSession objects, keyed
     # by their id().  This allows the JavaScript callback (that in
     # turn runs code in the IPython kernel) to look up the caller. The
     # Bokeh plot selection can then be passed to a method of the
@@ -174,11 +190,11 @@ class PlotMissingData:
         self._selection_history = SelectionHistory(m)
         self._plots = {}
 
-        PlotMissingData._instances[id(self)] = self
+        PlotSession._instances[id(self)] = self
 
     def _selection_callback(self, source, name, tabname):
         """Return a javascript callback that updates the particular
-        PlotMissingData instance according to the selection made in a
+        PlotSession instance according to the selection made in a
         Bokeh plot.
 
         """
@@ -195,7 +211,7 @@ class PlotMissingData:
             // ensure that pace.plots is imported under its canonical name
             kernel.execute("import pace.plots");
             kernel.execute(`(
-                pace.plots.PlotMissingData
+                pace.plots.PlotSession
                 ._instances[${instance_id}]
                 ._update_selection(
                     ${name},
