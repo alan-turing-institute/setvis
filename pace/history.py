@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from .missingness import Missingness
 
 
-@dataclass
+@dataclass(frozen=True)
 class Selection:
     columns: List = field(default_factory=list)
     records: Sequence[int] = field(default_factory=list)
