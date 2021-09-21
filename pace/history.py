@@ -6,7 +6,7 @@ from .missingness import Missingness
 class Selection(pydantic.BaseModel, frozen=True):
     columns: List = []
     records: List = []
-    patterns: List = []
+    combinations: List = []
 
 
 # Selections specify the items that they exclude, so that a nested
@@ -28,7 +28,7 @@ def drop_selection(m: Missingness, exclude: Selection):
     # column selection
     return (
         m.drop_records(exclude.records)
-        .drop_patterns(exclude.patterns)
+        .drop_combinations(exclude.combinations)
         .drop_columns(exclude.columns)
     )
 

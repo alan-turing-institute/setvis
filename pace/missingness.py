@@ -21,22 +21,19 @@ def _invert_selection(universe, selection):
 
 class Missingness:
 
-    _pattern: pd.DataFrame
-    _missingness: pd.DataFrame
+    _combination_id_to_columns: pd.DataFrame
+    _combination_id_to_records: pd.DataFrame
 
     def __init__(
         self,
-        pattern: pd.DataFrame,
-        missingness: pd.DataFrame,
+        combination_id_to_columns: pd.DataFrame,
+        combination_id_to_records: pd.DataFrame,
         check: bool = True,
-        pattern_key: str = "pattern_key",
-        index_col_label: str = "_index",
     ):
-        self._pattern = pattern.rename_axis(pattern_key)
-        self._missingness = missingness
-
-        self._pattern_key = pattern_key
-        self._index_col_label = index_col_label
+        self._combination_id_to_columns = combination_id_to_columns.rename_axis(
+            "combination_id"
+        )
+        self._combination_id_to_records = combination_id_to_records
 
         if check:
             self._check()
@@ -44,99 +41,111 @@ class Missingness:
     def _check(self):
         """Validate the class data
 
-        In particular: Check that the DataFrame '_missingness' has a
-        column 'pattern_key' with a foreign key relationship to
-        '_pattern'.
+        In particular: Check that the DataFrame '_combination_id_to_records' has a
+        column 'combination_id' with a foreign key relationship to
+        '_combination_id_to_columns'.
 
         """
-        assert self._pattern_key == self._missingness.index.name
-        assert self._missingness.index.isin(self._pattern.index).all()
+        assert self._combination_id_to_records.index.name == "combination_id"
+        assert self._combination_id_to_records.index.isin(
+            self._combination_id_to_columns.index
+        ).all()
 
-    def column_labels(self) -> List[Any]:
-        return list(self._pattern)
+    def columns(self) -> List[Any]:
+        return list(self._combination_id_to_columns)
 
-    def patterns(self):
-        return self._pattern
+    def combinations(self):
+        return self._combination_id_to_columns
 
-    def record_indices(self):
-        return self._missingness[self._index_col_label].values
+    def records(self):
+        return self._combination_id_to_records["_record_id"].values
 
-    def counts(self, count_col_name: str = "_count") -> pd.DataFrame:
-        """Return the missingness patterns of the data, and the count of each
+    def combination_counts(self) -> pd.DataFrame:
+        """Return the missingness combinations of the data, and the count of each
 
         :param count_col_name: The name of the column in the result
         holding the count data
 
-        :return: A dataframe containing the missingness patterns and
+        :return: A dataframe containing the missingness combinations and
         the number of times each appears in the dataset
 
         """
+        count_col_name = "_count"
 
-        counts = self._missingness.index.value_counts().rename(count_col_name)
+        counts = self._combination_id_to_records.index.value_counts().rename(
+            count_col_name
+        )
 
-        return self._pattern.join(counts)
+        return self._combination_id_to_columns.join(counts)
 
-    def select_patterns(self, selection: Optional[Sequence] = None):
-        """Return a Missingness object with the given subset of patterns
+    def select_combinations(self, selection: Optional[Sequence] = None):
+        """Return a Missingness object with the given subset of combinations
 
-        A Missingness object is returned, based on the given patterns
-        in :param selection: (which must be a subset of patterns of
+        A Missingness object is returned, based on the given combinations
+        in :param selection: (which must be a subset of combinations of
         the current object).  A selection of None corresponds to every
-        pattern being selected, and the original object is returned.
+        combination being selected, and the original object is returned.
 
         """
         if selection is None:
             return self
 
-        new_pattern = self._pattern.loc[selection]
-        new_missingness = self._missingness.loc[selection].sort_index()
+        new_combination_id_to_columns = self._combination_id_to_columns.loc[
+            selection
+        ]
+        new_combination_id_to_records = self._combination_id_to_records.loc[
+            selection
+        ].sort_index()
 
         return self.__class__(
-            new_pattern,
-            new_missingness,
+            new_combination_id_to_columns,
+            new_combination_id_to_records,
             check=True,
-            pattern_key=self._pattern_key,
-            index_col_label=self._index_col_label,
         )
 
-    def drop_patterns(self, selection: Optional[Sequence[int]]):
+    def drop_combinations(self, selection: Optional[Sequence[int]]):
         if selection is not None and len(selection) == 0:
             return self
         else:
-            return self.select_patterns(
-                self.invert_pattern_selection(selection)
+            return self.select_combinations(
+                self.invert_combination_selection(selection)
             )
 
-    def invert_pattern_selection(self, selection):
-        return _invert_selection(self._pattern.index.values, selection)
+    def invert_combination_selection(self, selection):
+        return _invert_selection(
+            self._combination_id_to_columns.index.values, selection
+        )
 
     def invert_record_selection(self, selection):
-        return _invert_selection(self.record_indices(), selection)
+        return _invert_selection(self.records(), selection)
 
     def invert_column_selection(self, selection):
-        return _invert_selection(self.column_labels(), selection)
+        return _invert_selection(self.columns(), selection)
 
-    def _compute_set(self, pattern_spec: SetExpr):
-        """Evaluate the SetExpr :pattern_spec: for the current instance"""
-        return pattern_spec.run_with(self._pattern.__getitem__)
+    def _compute_set(self, combination_spec: SetExpr):
+        """Evaluate the SetExpr :combination_spec: for the current instance"""
+        return combination_spec.run_with(
+            self._combination_id_to_columns.__getitem__
+        )
 
-    def matches(self, pattern_spec: SetExpr) -> np.ndarray:
-        """Indicate which records match the given missingness pattern
+    def matches(self, combination_spec: SetExpr) -> np.ndarray:
+        """Indicate which records match the given missingness combination
 
         Return a boolean series, which is True for each index where
-        the data matches the given missingness pattern :param
-        pattern_spec:
+        the data matches the given missingness combination :param combination_spec:
 
         """
 
-        pattern_matches = self._compute_set(pattern_spec)
+        combination_matches = self._compute_set(combination_spec)
 
         # Convert Boolean array of matches to series of matching indices
-        matching_pattern_keys = pattern_matches.index[pattern_matches]
+        matching_combination_ids = combination_matches.index[
+            combination_matches
+        ]
 
         # np.concatenate needs at least one array, so handle empty case
         # separately
-        if matching_pattern_keys.empty:
+        if matching_combination_ids.empty:
             return np.array([], dtype=np.int64)
         else:
             return np.concatenate(
@@ -145,23 +154,28 @@ class Missingness:
                     # poor when the df has a non-unique index:
                     # instead, apply loc to each separate index and
                     # concatenate
-                    self._missingness.loc[k].to_numpy().reshape(-1)
-                    for k in matching_pattern_keys
+                    self._combination_id_to_records.loc[k]
+                    .to_numpy()
+                    .reshape(-1)
+                    for k in matching_combination_ids
                 ],
             )
 
-    def count_matches(self, pattern_spec: SetExpr) -> int:
-        """Equivalent to len(self.matches(pattern_spec)), but could have a
+    def count_matches(self, combination_spec: SetExpr) -> int:
+        """Equivalent to len(self.matches(combination_spec)), but could have a
         performance benefit
         """
 
-        pattern_matches = self._compute_set(pattern_spec)
+        combination_matches = self._compute_set(combination_spec)
 
         # Convert Boolean array of matches to series of matching indices
-        matching_pattern_keys = pattern_matches.index[pattern_matches]
+        matching_combination_ids = combination_matches.index[
+            combination_matches
+        ]
 
         return sum(
-            len(self._missingness.loc[k]) for k in matching_pattern_keys
+            len(self._combination_id_to_records.loc[k])
+            for k in matching_combination_ids
         )
 
     def select_columns(self, selection: Optional[List] = None):
@@ -169,31 +183,29 @@ class Missingness:
 
         A new Missingness object is constructed from the given columns
         :param selection: (which must be a subset of columns of the
-        current object).  Patterns that are identical under the
+        current object).  Combinations that are identical under the
         selection are consolidated.
 
         """
         if selection is None:
             return self
 
-        new_groups = self._pattern[selection].groupby(
+        new_groups = self._combination_id_to_columns[selection].groupby(
             selection, as_index=False
         )
 
-        new_pattern = new_groups.first()
+        new_combination_id_to_columns = new_groups.first()
 
-        group_mapping = new_groups.ngroup().rename(self._pattern_key)
+        group_mapping = new_groups.ngroup().rename("combination_id")
 
-        new_missingness = self._missingness.set_index(
-            self._missingness.index.map(group_mapping)
+        new_combination_id_to_records = self._combination_id_to_records.set_index(
+            self._combination_id_to_records.index.map(group_mapping)
         ).sort_index()
 
         return self.__class__(
-            new_pattern,
-            new_missingness,
+            new_combination_id_to_columns,
+            new_combination_id_to_records,
             check=False,
-            pattern_key=self._pattern_key,
-            index_col_label=self._index_col_label,
         )
 
     def drop_columns(self, selection: Optional[List]):
@@ -207,19 +219,19 @@ class Missingness:
             return self
 
         # no need to sort_index, since selection is returned in index order
-        new_missingness = self._missingness[
-            self._missingness[self._index_col_label].isin(selection)
+        new_combination_id_to_records = self._combination_id_to_records[
+            self._combination_id_to_records["_record_id"].isin(selection)
         ]
 
-        # discard unused pattern indices, but do not reindex
-        new_pattern = self._pattern.loc[new_missingness.index.unique()]
+        # discard unused combination ids, but do not reindex
+        new_combination_id_to_columns = self._combination_id_to_columns.loc[
+            new_combination_id_to_records.index.unique()
+        ]
 
         return self.__class__(
-            new_pattern,
-            new_missingness,
+            new_combination_id_to_columns,
+            new_combination_id_to_records,
             check=True,
-            pattern_key=self._pattern_key,
-            index_col_label=self._index_col_label,
         )
 
     def drop_records(self, selection: Optional[Sequence[int]]):
@@ -230,24 +242,23 @@ class Missingness:
 
     @classmethod
     def from_data_frame(
-        cls,
-        df: pd.DataFrame,
-        pattern_key: str = "pattern_key",
-        index_col_label: str = "_index",
-        is_missing: Callable[[Any], bool] = pd.isnull,
+        cls, df: pd.DataFrame, is_missing: Callable[[Any], bool] = pd.isnull,
     ):
         grouped = is_missing(df).groupby(list(df))
-        missingness = (
-            pd.DataFrame(grouped.ngroup(), columns=[pattern_key])
-            .rename_axis(index_col_label)
+        combination_id_to_records = (
+            pd.DataFrame(grouped.ngroup(), columns=["combination_id"])
+            .rename_axis("_record_id")
             .reset_index()
-            .set_index(pattern_key)
+            .set_index("combination_id")
             .sort_index()
         )
-        pattern = pd.DataFrame(grouped.indices.keys(), columns=df.columns)
+        combination_id_to_columns = pd.DataFrame(
+            grouped.indices.keys(), columns=df.columns
+        )
 
         return cls(
-            missingness=missingness, pattern=pattern, pattern_key=pattern_key
+            combination_id_to_records=combination_id_to_records,
+            combination_id_to_columns=combination_id_to_columns,
         )
 
     @classmethod
@@ -260,17 +271,15 @@ class Missingness:
         raise NotImplementedError()
 
 
-def heatmap_data(m: Missingness, count_col="_count"):
-    counts = m.counts(count_col)
+def heatmap_data(m: Missingness):
+    counts = m.combination_counts()
     return (
-        counts.astype(int)
-        .mul(counts[count_col], axis=0)
-        .drop(count_col, axis=1)
+        counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
 
 
 def value_bar_chart_data(m: Missingness):
-    labels = m.column_labels()
+    labels = m.columns()
     return pd.DataFrame(
         {"_count": [m.count_matches(Col(label)) for label in labels]},
         index=labels,
