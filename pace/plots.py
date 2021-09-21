@@ -1,6 +1,4 @@
-from pace.missingness import Missingness
-import pace.missingness as missingness
-from pace.history import SelectionHistory, Selection
+import json
 import bokeh.plotting
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS
@@ -17,6 +15,10 @@ from IPython.display import Javascript, display
 from ipywidgets import widgets
 from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
+from pace.missingness import Missingness
+import pace.missingness as missingness
+from pace.history import SelectionHistory, Selection
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -186,11 +188,12 @@ class CombinationHeatmap(MissingnessPlotBase):
 
 
 class PlotSession:
-    """Class representing an interactive plotting session in a Jupyter notebook
+    """An interactive plotting session in a Jupyter notebook
 
-    A session contains a sequence of named plots.  New selections can
-    be made interactively from the plots, and other plots added to the
-    session.
+    A session contains a sequence of named selections, each with a few
+    corresponding Bokeh plots (tabs in a tabbed layout).  New
+    selections can be made interactively from the plots, and then
+    other plots added.
 
     """
 
@@ -198,13 +201,21 @@ class PlotSession:
     # add_plot
     _selection_history: SelectionHistory
 
-    # A dictionary from (name, tab_name) to a Bokeh plot object. Here
-    # 'name' is the user provided name of the selection being plotted
-    # (it is also a key of _selection_history) -- this identifies a
-    # particular group of Tabs -- and 'tab_name' is the name of a
-    # particular tab (one of "value_bar_chart", "combination_heatmap",
-    # ...)
+    # A dictionary from (name, tab_name) to a MissingnessPlotBase
+    # object. Here 'name' is the user provided name of the selection
+    # being plotted (it is also a key of _selection_history) -- this
+    # identifies a particular group of Tabs -- and 'tab_name' is the
+    # name of a particular tab (one of "value_bar_chart",
+    # "combination_heatmap", ...)
+    #
+    # The Bokeh plot object (produced by calling .plot()) is not
+    # stored -- this would not be particularly useful anyway, since it
+    # is not the object visible in the notebook!
     _plots: Dict[Tuple[Any, Any], MissingnessPlotBase]
+
+    # For each plot, an integer representing the tab that should be
+    # visible (used for saving/loading sessions)
+    _active_tabs: Dict[Any, int]
 
     # A class-member dictionary holding PlotSession objects, keyed
     # by their id().  This allows the JavaScript callback (that in
@@ -215,13 +226,25 @@ class PlotSession:
     # collected.
     _instances = WeakValueDictionary()
 
-    def __init__(self, df):
+    def __init__(self, df, session_file=None):
         bokeh.io.output_notebook(hide_banner=True)
 
         m = Missingness.from_data_frame(df)
 
-        self._selection_history = SelectionHistory(m)
         self._plots = {}
+
+        if session_file is None:
+            self._selection_history = SelectionHistory(m)
+            self._active_tabs = {}
+
+        else:
+            with open(session_file) as f:
+                j = json.load(f)
+
+            self._selection_history = SelectionHistory(
+                m, j["selection_history"]
+            )
+            self._active_tabs = j["active_tabs"]
 
         PlotSession._instances[id(self)] = self
 
@@ -255,6 +278,22 @@ class PlotSession:
             """,
         )
 
+    def _active_tab_callback(self, name):
+        """Return a javascript callback that updates the dictionary indicating
+        the active tab in each Bokeh Tabs panel"""
+        return CustomJS(
+            args={"instance_id": id(self), "name": repr(name)},
+            code="""
+            var kernel = IPython.notebook.kernel;
+            var active = cb_obj.active;
+            kernel.execute("import pace.plots");
+            kernel.execute(`pace.plots.PlotSession._instances[
+                                ${instance_id}
+                            ]._active_tabs[${name}] = ${active}
+            `);
+            """,
+        )
+
     def _update_selection(self, name, tabname, indices):
         self._selection_history.update_active(
             name,
@@ -262,9 +301,12 @@ class PlotSession:
         )
 
     def _add_subplot(self, plotter_cls, name, tabname):
+        parent = self._selection_history.parent(name)
 
-        m = self._selection_history.missingness(name)
-        plotter = plotter_cls(m)
+        m = self._selection_history.missingness(parent)
+        selection = self._selection_history[name]
+
+        plotter = plotter_cls(m, initial_selection=selection)
 
         self._plots[name, tabname] = plotter
 
@@ -279,6 +321,8 @@ class PlotSession:
         """Creates all the plot options and shows them in a tab layout"""
 
         self._selection_history.new_selection(name, based_on)
+        if name not in self._active_tabs:
+            self._active_tabs[name] = 0
 
         p1 = self._add_subplot(ValueBarChart, name, "value_bar_chart")
         tab1 = Panel(child=p1, title="Value bar chart")
@@ -286,7 +330,8 @@ class PlotSession:
         p2 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
         tab2 = Panel(child=p2, title="Combination heatmap")
 
-        tabs = Tabs(tabs=[tab1, tab2], active=0)
+        tabs = Tabs(tabs=[tab1, tab2], active=self._active_tabs[name])
+        tabs.js_on_change("active", self._active_tab_callback(name))
 
         show(tabs)
 
@@ -297,3 +342,33 @@ class PlotSession:
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
     # ********"""
         )
+
+    def dict(self):
+        """Returns a json-serializable dict representing the session
+
+        It includes:
+          - the plot selections (contained in _selection_history)
+          - the active (currently-selected) tab in each Bokeh 'Tabs' layout
+
+        It does not include any of the missingness data itself
+
+        This is used by .save() to save the session state to a file.
+        """
+
+        return {
+            "selection_history": self._selection_history.dict(),
+            "active_tabs": self._active_tabs,
+        }
+
+    def save(self, filename):
+        with open(filename, "w") as f:
+            json.dump(self.dict(), f, cls=NPIntEncoder, indent=1)
+
+
+class NPIntEncoder(json.JSONEncoder):
+    """JSON encoder for numpy integer dtypes"""
+
+    def default(self, obj):
+        if np.issubdtype(obj, np.integer):
+            return int(obj)
+        return super().default(obj)
