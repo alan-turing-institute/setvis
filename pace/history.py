@@ -1,19 +1,17 @@
-from typing import Optional, List, Sequence, Dict
-from dataclasses import dataclass, field
+import pydantic
+from typing import Optional, List, Dict, Sequence, Union
 from .missingness import Missingness
 
 
-@dataclass
-class Selection:
-    columns: List = field(default_factory=list)
-    records: Sequence[int] = field(default_factory=list)
-    patterns: Sequence[int] = field(default_factory=list)
+class Selection(pydantic.BaseModel, frozen=True):
+    columns: List = []
+    records: List = []
+    patterns: List = []
 
 
 # Selections specify the items that they exclude, so that a nested
 # selection can be stored efficiently
-@dataclass
-class SubSelection:
+class SubSelection(pydantic.BaseModel):
     parent: Optional[str] = None
     exclude: Selection = Selection()
 
@@ -35,20 +33,34 @@ def drop_selection(m: Missingness, exclude: Selection):
     )
 
 
+def _parse_selections(d):
+    """Helper function for SelectionHistory constructor"""
+    return pydantic.parse_obj_as(Dict[str, SubSelection], d)
+
+
 class SelectionHistory:
-    def __init__(self, missingness: Missingness, journal_file=None):
-        # attempt to open the journal file for reading if it exists,
-        # otherwise create it
-        if journal_file:
-            pass
-
+    def __init__(
+        self,
+        missingness: Missingness,
+        selections: Optional[Dict[str, SubSelection]] = None,
+    ):
         self._missingness = missingness
-        self._selections: Dict[str, SubSelection] = {}
+        self._selections = (
+            _parse_selections(selections) if selections is not None else {}
+        )
 
-    def new_selection(self, name, base_selection=None):
-        # if name already exists in _selections, reset the active
-        # selection to the default, of everything in base_selection
-        self._selections[name] = SubSelection(base_selection)
+    def new_selection(self, name, base_selection=None, force_reset=False):
+        keep_current = (
+            not force_reset
+            and name in self._selections
+            and base_selection == self.parent(name)
+        )
+        if not keep_current:
+            # (re)set the active selection to the entire base_selection
+            self._selections[name] = SubSelection(parent=base_selection)
+
+    def __getitem__(self, name):
+        return self._selections[name].exclude
 
     # Can't straightforwardly provide an interface specifying what
     # should be included in the selection (rather than excluded from
@@ -69,5 +81,5 @@ class SelectionHistory:
             m = drop_selection(m, self._selections[ancestor].exclude)
         return m
 
-    def save(self):
-        raise NotImplementedError()
+    def dict(self):
+        return {k: v.dict() for k, v in self._selections.items()}

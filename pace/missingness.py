@@ -10,13 +10,13 @@ class Col(Set):
 
 def _invert_selection(universe, selection):
     if selection is None:
-        return np.array([])
+        return []
     elif len(selection) == 0:
         return None
     else:
         # equivalent to np.setdiff1d(universe, selection), but
         # setdiff1d doesn't preserve element order
-        return np.array(universe)[~np.in1d(universe, selection)]
+        return list(np.array(universe)[~np.in1d(universe, selection)])
 
 
 class Missingness:
@@ -114,8 +114,7 @@ class Missingness:
         return _invert_selection(self.record_indices(), selection)
 
     def invert_column_selection(self, selection):
-        s = _invert_selection(self.column_labels(), selection)
-        return s if s is None else list(s)
+        return _invert_selection(self.column_labels(), selection)
 
     def _compute_set(self, pattern_spec: SetExpr):
         """Evaluate the SetExpr :pattern_spec: for the current instance"""
