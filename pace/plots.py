@@ -66,7 +66,7 @@ class ValueBarChart(MissingnessPlotBase):
             tools=self.tools,
             width=self.width,
             height=self.height,
-            x_range=self._data.column_labels(),
+            x_range=self._data.columns(),
         )
         p.vbar(
             x="index", top="_count", width=self.bar_width, source=self.source
@@ -77,7 +77,7 @@ class ValueBarChart(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        col_labels = self._data.column_labels()
+        col_labels = self._data.columns()
 
         return Selection(
             columns=self._data.invert_column_selection(
@@ -86,7 +86,7 @@ class ValueBarChart(MissingnessPlotBase):
         )
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        col_labels = self._data.column_labels()
+        col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
             np.in1d(col_labels, selection.columns, invert=True)
         )
@@ -100,10 +100,10 @@ class CombinationHeatmap(MissingnessPlotBase):
         self._data = data
 
         heatmap_data = missingness.heatmap_data(data)
-        heatmap_data["pattern_key_str"] = heatmap_data.index.values.astype(str)
+        heatmap_data["combination_id_str"] = heatmap_data.index.values.astype(str)
         heatmap_data_long = pd.melt(
             heatmap_data.reset_index(),
-            id_vars=["pattern_key", "pattern_key_str"],
+            id_vars=["combination_id", "combination_id_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
 
@@ -112,7 +112,7 @@ class CombinationHeatmap(MissingnessPlotBase):
         )
 
         self.x_range = list(heatmap_data)
-        self.y_range = list(heatmap_data["pattern_key_str"].values)
+        self.y_range = list(heatmap_data["combination_id_str"].values)
         self.c_max = heatmap_data_long["value"].max()
 
         self.xlabel = "Fields"
@@ -137,7 +137,7 @@ class CombinationHeatmap(MissingnessPlotBase):
         p.grid.visible = self.grid_visible
 
         p.rect(
-            y="pattern_key_str",
+            y="combination_id_str",
             x="variable",
             source=self.source,
             width=1.0,
@@ -160,26 +160,26 @@ class CombinationHeatmap(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        n_combinations = len(self._data.patterns())
-        pattern_key = self._data.patterns().index.values
-        include = list({pattern_key[i % n_combinations] for i in indices})
+        n_combinations = len(self._data.combinations())
+        combination_id = self._data.combinations().index.values
+        include = list({combination_id[i % n_combinations] for i in indices})
         exclude = self._data.invert_pattern_selection(include)
 
-        return Selection(patterns=exclude)
+        return Selection(combinations=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        n_columns = len(self._data.column_labels())
-        n_patterns = len(self._data.patterns())
+        n_columns = len(self._data.columns())
+        n_combinations = len(self._data.combinations())
 
         pattern_indices_tuple = np.where(
             np.in1d(
-                self._data.patterns().index, selection.patterns, invert=True
+                self._data.combinations().index, selection.combinations, invert=True
             )
         )
         pattern_indices = pattern_indices_tuple[0]
 
         box_indices = [
-            j * n_patterns + i
+            j * n_combinations + i
             for j in range(n_columns)
             for i in pattern_indices
         ]

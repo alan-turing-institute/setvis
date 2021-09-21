@@ -16,24 +16,24 @@ def example_df():
 def test_missingness_construction():
     """Basic checks of constructing Missingness"""
 
-    missingness1 = pd.DataFrame(data={"pattern_key": [0, 1, 1, 2]}).set_index(
-        "pattern_key"
+    r1 = pd.DataFrame(data={"combination_id": [0, 1, 1, 2]}).set_index(
+        "combination_id"
     )
-    pattern1 = pd.DataFrame(data={"pattern_key": [0, 1, 2]}).set_index(
-        "pattern_key"
+    c1 = pd.DataFrame(data={"combination_id": [0, 1, 2]}).set_index(
+        "combination_id"
     )
 
-    Missingness(pattern=pattern1, missingness=missingness1)
+    Missingness(combination_id_to_columns=c1, combination_id_to_records=r1)
 
-    missingness2 = pd.DataFrame(data={"pattern_key": [0, 1, 1, 3]}).set_index(
-        "pattern_key"
+    r2 = pd.DataFrame(data={"combination_id": [0, 1, 1, 3]}).set_index(
+        "combination_id"
     )
-    pattern2 = pd.DataFrame(data={"pattern_key": [0, 1, 2]}).set_index(
-        "pattern_key"
+    c2 = pd.DataFrame(data={"combination_id": [0, 1, 2]}).set_index(
+        "combination_id"
     )
 
     with pytest.raises(AssertionError):
-        Missingness(pattern=pattern2, missingness=missingness2)
+        Missingness(combination_id_to_columns=c2, combination_id_to_records=r2)
 
 
 def test_missingness_from_df():
@@ -47,8 +47,8 @@ def test_missingness_from_df():
     m = Missingness.from_data_frame(df)
 
     assert (
-        m._missingness.join(m._pattern)
-        .set_index("_index")
+        m._combination_id_to_records.join(m._combination_id_to_columns)
+        .set_index("_record_id")
         .sort_index()
         .equals(df.isnull())
     )
