@@ -271,3 +271,18 @@ def value_bar_chart_data(m: Missingness):
         {"_count": [m.count_matching_records(Col(label)) for label in labels]},
         index=labels,
     )
+
+
+def value_count_histogram_data(m: Missingness, bins: int = 10):
+    labels = m.columns()
+    data = pd.DataFrame(
+        {"_count": [m.count_matching_records(Col(label)) for label in labels]},
+        index=labels,
+    )
+    min_val = data["_count"].min()
+    max_val = data["_count"].max()
+    bin_width = (max_val - min_val) / (bins - 1)
+    data["_bin_id"] = data["_count"].apply(
+        lambda x: int(np.ceil((x - min_val) / bin_width))
+    )
+    return data

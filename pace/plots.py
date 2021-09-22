@@ -95,6 +95,56 @@ class ValueBarChart(MissingnessPlotBase):
         return col_indices
 
 
+class ValueCountHistogram(MissingnessPlotBase):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
+        self._data = data
+        self._hist_data = missingness.value_count_histogram_data(data)
+        self.source = ColumnDataSource(
+            self._hist_data.groupby(by=["_bin_id"])
+            .size()
+            .reset_index(name="_bin_count")
+        )
+
+        # self.source.selected.indices = self.selection_to_plot_indices(
+        #     initial_selection
+        # )
+
+        self.bar_width = 1.0
+        self.tools = ["box_select", "tap", "reset"]
+        self.height = 960
+        self.width = 960
+        self.title = "Value count histogram"
+        self.xlabel = "Number of missing values"
+        self.ylabel = "Number of fields"
+        self.linecolor = "white"
+
+    def plot(self) -> bokeh.plotting.Figure:
+        p = figure(
+            title=self.title,
+            tools=self.tools,
+            width=self.width,
+            height=self.height,
+            # x_range=self._data.columns(),
+        )
+        p.vbar(
+            x="_bin_id",
+            top="_bin_count",
+            width=self.bar_width,
+            source=self.source,
+            line_color=self.linecolor,
+        )
+        p.xaxis.axis_label = self.xlabel
+        p.yaxis.axis_label = self.ylabel
+
+        return p
+
+    def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        pass
+
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        pass
+
+
 class CombinationHeatmap(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
@@ -330,10 +380,15 @@ class PlotSession:
         p1 = self._add_subplot(ValueBarChart, name, "value_bar_chart")
         tab1 = Panel(child=p1, title="Value bar chart")
 
-        p2 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
-        tab2 = Panel(child=p2, title="Combination heatmap")
+        p2 = self._add_subplot(
+            ValueCountHistogram, name, "value_count_histogram"
+        )
+        tab2 = Panel(child=p2, title="Value count histogram")
 
-        tabs = Tabs(tabs=[tab1, tab2], active=self._active_tabs[name])
+        p3 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
+        tab3 = Panel(child=p3, title="Combination heatmap")
+
+        tabs = Tabs(tabs=[tab1, tab2, tab3], active=self._active_tabs[name])
         tabs.js_on_change("active", self._active_tab_callback(name))
 
         show(tabs)
