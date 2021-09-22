@@ -60,8 +60,8 @@ def test_missingness_match():
 
     expected1 = np.array([1, 2, 6])
 
-    assert (np.sort(m.matches(Col("a"))) == expected1).all()
+    assert (np.sort(m.matching_records(Col("a"))) == expected1).all()
 
     expected2 = np.array([1, 2, 3, 5, 6])
 
-    assert (np.sort(m.matches(Col("a") | Col("b"))) == expected2).all()
+    assert (np.sort(m.matching_records(Col("a") | Col("b"))) == expected2).all()

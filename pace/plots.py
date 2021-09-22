@@ -100,7 +100,9 @@ class CombinationHeatmap(MissingnessPlotBase):
         self._data = data
 
         heatmap_data = missingness.heatmap_data(data)
-        heatmap_data["combination_id_str"] = heatmap_data.index.values.astype(str)
+        heatmap_data["combination_id_str"] = heatmap_data.index.values.astype(
+            str
+        )
         heatmap_data_long = pd.melt(
             heatmap_data.reset_index(),
             id_vars=["combination_id", "combination_id_str"],
@@ -163,7 +165,7 @@ class CombinationHeatmap(MissingnessPlotBase):
         n_combinations = len(self._data.combinations())
         combination_id = self._data.combinations().index.values
         include = list({combination_id[i % n_combinations] for i in indices})
-        exclude = self._data.invert_pattern_selection(include)
+        exclude = self._data.invert_combination_selection(include)
 
         return Selection(combinations=exclude)
 
@@ -171,17 +173,19 @@ class CombinationHeatmap(MissingnessPlotBase):
         n_columns = len(self._data.columns())
         n_combinations = len(self._data.combinations())
 
-        pattern_indices_tuple = np.where(
+        combination_ids_tuple = np.where(
             np.in1d(
-                self._data.combinations().index, selection.combinations, invert=True
+                self._data.combinations().index,
+                selection.combinations,
+                invert=True,
             )
         )
-        pattern_indices = pattern_indices_tuple[0]
+        combination_ids = combination_ids_tuple[0]
 
         box_indices = [
             j * n_combinations + i
             for j in range(n_columns)
-            for i in pattern_indices
+            for i in combination_ids
         ]
 
         return box_indices
@@ -295,10 +299,9 @@ class PlotSession:
         )
 
     def _update_selection(self, name, tabname, indices):
-        self._selection_history.update_active(
-            name,
-            self._plots[name, tabname].plot_indices_to_selection(indices),
-        )
+        self._selection_history[name] = self._plots[
+            name, tabname
+        ].plot_indices_to_selection(indices)
 
     def _add_subplot(self, plotter_cls, name, tabname):
         parent = self._selection_history.parent(name)
