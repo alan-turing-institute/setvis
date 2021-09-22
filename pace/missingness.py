@@ -41,8 +41,9 @@ class Missingness:
     def _check(self):
         """Validate the class data
 
-        In particular: Check that the DataFrame '_combination_id_to_records' has a
-        column 'combination_id' with a foreign key relationship to
+        In particular: Check that the DataFrame
+        '_combination_id_to_records' has a column 'combination_id'
+        with a foreign key relationship to
         '_combination_id_to_columns'.
 
         """
@@ -60,8 +61,8 @@ class Missingness:
     def records(self):
         return self._combination_id_to_records["_record_id"].values
 
-    def combination_counts(self) -> pd.DataFrame:
-        """Return the missingness combinations of the data, and the count of each
+    def count_combinations(self) -> pd.DataFrame:
+        """Distinct missingness combinations in the data, and the count of each
 
         :param count_col_name: The name of the column in the result
         holding the count data
@@ -77,106 +78,6 @@ class Missingness:
         )
 
         return self._combination_id_to_columns.join(counts)
-
-    def select_combinations(self, selection: Optional[Sequence] = None):
-        """Return a Missingness object with the given subset of combinations
-
-        A Missingness object is returned, based on the given combinations
-        in :param selection: (which must be a subset of combinations of
-        the current object).  A selection of None corresponds to every
-        combination being selected, and the original object is returned.
-
-        """
-        if selection is None:
-            return self
-
-        new_combination_id_to_columns = self._combination_id_to_columns.loc[
-            selection
-        ]
-        new_combination_id_to_records = self._combination_id_to_records.loc[
-            selection
-        ].sort_index()
-
-        return self.__class__(
-            new_combination_id_to_columns,
-            new_combination_id_to_records,
-            check=True,
-        )
-
-    def drop_combinations(self, selection: Optional[Sequence[int]]):
-        if selection is not None and len(selection) == 0:
-            return self
-        else:
-            return self.select_combinations(
-                self.invert_combination_selection(selection)
-            )
-
-    def invert_combination_selection(self, selection):
-        return _invert_selection(
-            self._combination_id_to_columns.index.values, selection
-        )
-
-    def invert_record_selection(self, selection):
-        return _invert_selection(self.records(), selection)
-
-    def invert_column_selection(self, selection):
-        return _invert_selection(self.columns(), selection)
-
-    def _compute_set(self, combination_spec: SetExpr):
-        """Evaluate the SetExpr :combination_spec: for the current instance"""
-        return combination_spec.run_with(
-            self._combination_id_to_columns.__getitem__
-        )
-
-    def matches(self, combination_spec: SetExpr) -> np.ndarray:
-        """Indicate which records match the given missingness combination
-
-        Return a boolean series, which is True for each index where
-        the data matches the given missingness combination :param combination_spec:
-
-        """
-
-        combination_matches = self._compute_set(combination_spec)
-
-        # Convert Boolean array of matches to series of matching indices
-        matching_combination_ids = combination_matches.index[
-            combination_matches
-        ]
-
-        # np.concatenate needs at least one array, so handle empty case
-        # separately
-        if matching_combination_ids.empty:
-            return np.array([], dtype=np.int64)
-        else:
-            return np.concatenate(
-                [
-                    # performance of indexing with a list using loc is
-                    # poor when the df has a non-unique index:
-                    # instead, apply loc to each separate index and
-                    # concatenate
-                    self._combination_id_to_records.loc[k]
-                    .to_numpy()
-                    .reshape(-1)
-                    for k in matching_combination_ids
-                ],
-            )
-
-    def count_matches(self, combination_spec: SetExpr) -> int:
-        """Equivalent to len(self.matches(combination_spec)), but could have a
-        performance benefit
-        """
-
-        combination_matches = self._compute_set(combination_spec)
-
-        # Convert Boolean array of matches to series of matching indices
-        matching_combination_ids = combination_matches.index[
-            combination_matches
-        ]
-
-        return sum(
-            len(self._combination_id_to_records.loc[k])
-            for k in matching_combination_ids
-        )
 
     def select_columns(self, selection: Optional[List] = None):
         """Return a new Missingness object for a subset of the columns
@@ -208,11 +109,30 @@ class Missingness:
             check=False,
         )
 
-    def drop_columns(self, selection: Optional[List]):
-        if selection is not None and len(selection) == 0:
+    def select_combinations(self, selection: Optional[Sequence] = None):
+        """Return a Missingness object with the given subset of combinations
+
+        A Missingness object is returned, based on the given combinations
+        in :param selection: (which must be a subset of combinations of
+        the current object).  A selection of None corresponds to every
+        combination being selected, and the original object is returned.
+
+        """
+        if selection is None:
             return self
-        else:
-            return self.select_columns(self.invert_column_selection(selection))
+
+        new_combination_id_to_columns = self._combination_id_to_columns.loc[
+            selection
+        ]
+        new_combination_id_to_records = self._combination_id_to_records.loc[
+            selection
+        ].sort_index()
+
+        return self.__class__(
+            new_combination_id_to_columns,
+            new_combination_id_to_records,
+            check=True,
+        )
 
     def select_records(self, selection: Optional[Sequence[int]] = None):
         if selection is None:
@@ -234,11 +154,87 @@ class Missingness:
             check=True,
         )
 
+    def drop_columns(self, selection: Optional[List]):
+        if selection is not None and len(selection) == 0:
+            return self
+        else:
+            return self.select_columns(self.invert_column_selection(selection))
+
+    def drop_combinations(self, selection: Optional[Sequence[int]]):
+        if selection is not None and len(selection) == 0:
+            return self
+        else:
+            return self.select_combinations(
+                self.invert_combination_selection(selection)
+            )
+
     def drop_records(self, selection: Optional[Sequence[int]]):
         if selection is not None and len(selection) == 0:
             return self
         else:
             return self.select_records(self.invert_record_selection(selection))
+
+    def invert_combination_selection(self, selection):
+        return _invert_selection(
+            self._combination_id_to_columns.index.values, selection
+        )
+
+    def invert_column_selection(self, selection):
+        return _invert_selection(self.columns(), selection)
+
+    def invert_record_selection(self, selection):
+        return _invert_selection(self.records(), selection)
+
+    def _compute_set(self, combination_spec: SetExpr):
+        """Evaluate the SetExpr :combination_spec: for the current instance"""
+        return combination_spec.run_with(
+            self._combination_id_to_columns.__getitem__
+        )
+
+    def matching_combinations(self, combination_spec: SetExpr) -> np.ndarray:
+        matches = self._compute_set(combination_spec)
+
+        # Convert Boolean array of matches to array of matching indices
+        return matches.index[matches].values
+
+    def matching_records(self, combination_spec: SetExpr) -> np.ndarray:
+        """Indicate which records match the given missingness combination
+
+        Return a boolean series, which is True for each index where
+        the data matches the given missingness combination :param combination_spec:
+
+        """
+        matching_combination_ids = self.matching_combinations(combination_spec)
+
+        # np.concatenate needs at least one array, so handle empty case
+        # separately
+        if len(matching_combination_ids) == 0:
+            return np.array([], dtype=np.int64)
+        else:
+            return np.concatenate(
+                [
+                    # performance of indexing with a list using loc is
+                    # poor when the df has a non-unique index.
+                    # Instead, apply loc to each separate index and
+                    # concatenate
+                    self._combination_id_to_records.loc[k]
+                    .to_numpy()
+                    .reshape(-1)
+                    for k in matching_combination_ids
+                ],
+            )
+
+    def count_matching_records(self, combination_spec: SetExpr) -> int:
+        """Equivalent to len(self.matching_records(combination_spec)), but
+        could have a performance benefit
+
+        """
+        matching_combination_ids = self.matching_combinations(combination_spec)
+
+        return sum(
+            len(self._combination_id_to_records.loc[k])
+            for k in matching_combination_ids
+        )
 
     @classmethod
     def from_data_frame(
@@ -272,7 +268,7 @@ class Missingness:
 
 
 def heatmap_data(m: Missingness):
-    counts = m.combination_counts()
+    counts = m.count_combinations()
     return (
         counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
@@ -281,6 +277,6 @@ def heatmap_data(m: Missingness):
 def value_bar_chart_data(m: Missingness):
     labels = m.columns()
     return pd.DataFrame(
-        {"_count": [m.count_matches(Col(label)) for label in labels]},
+        {"_count": [m.count_matching_records(Col(label)) for label in labels]},
         index=labels,
     )

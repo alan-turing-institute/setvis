@@ -21,13 +21,13 @@ def test_selection_history():
     h = SelectionHistory(m)
 
     h.new_selection("a")
-    h.update_active("a", exclude=Selection(columns=["a"]))
+    h["a"] = Selection(columns=["a"])
 
     assert h.missingness("a").columns() == ["c", "b"]
     assert len(h.missingness("a").combinations()) == 3
 
     h.new_selection("b", "a")
-    h.update_active("b", exclude=Selection(combinations=[0, 1]))
+    h["b"] = Selection(combinations=[0, 1])
 
     m_b = h.missingness("b")
 
