@@ -155,24 +155,15 @@ class Missingness:
         )
 
     def drop_columns(self, selection: Optional[List]):
-        if selection is not None and len(selection) == 0:
-            return self
-        else:
-            return self.select_columns(self.invert_column_selection(selection))
+        return self.select_columns(self.invert_column_selection(selection))
 
     def drop_combinations(self, selection: Optional[Sequence[int]]):
-        if selection is not None and len(selection) == 0:
-            return self
-        else:
-            return self.select_combinations(
-                self.invert_combination_selection(selection)
-            )
+        return self.select_combinations(
+            self.invert_combination_selection(selection)
+        )
 
     def drop_records(self, selection: Optional[Sequence[int]]):
-        if selection is not None and len(selection) == 0:
-            return self
-        else:
-            return self.select_records(self.invert_record_selection(selection))
+        return self.select_records(self.invert_record_selection(selection))
 
     def invert_combination_selection(self, selection):
         return _invert_selection(
