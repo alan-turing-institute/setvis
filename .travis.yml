@@ -1,0 +1,12 @@
+dist: xenial
+language: python
+python:
+ - 3.8
+
+install:
+  - pip install --upgrade pip
+  - pip install poetry
+  - poetry install
+
+script:
+  - pytest tests
