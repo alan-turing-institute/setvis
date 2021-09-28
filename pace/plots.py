@@ -98,17 +98,19 @@ class ValueBarChart(MissingnessPlotBase):
 class ValueCountHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
-        self._hist_data = missingness.value_count_histogram_data(data)
+        self._bins = 10
+        (
+            self._hist_data,
+            self._hist_edges,
+        ) = missingness.value_count_histogram_data(data, self._bins)
         self.source = ColumnDataSource(
             self._hist_data.groupby(by=["_bin_id"])
             .size()
             .reset_index(name="_bin_count")
         )
-
-        # self.source.selected.indices = self.selection_to_plot_indices(
-        #     initial_selection
-        # )
-
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
+        )
         self.bar_width = 1.0
         self.tools = ["box_select", "tap", "reset"]
         self.height = 960
@@ -126,6 +128,7 @@ class ValueCountHistogram(MissingnessPlotBase):
             height=self.height,
             # x_range=self._data.columns(),
         )
+        p.xaxis.ticker = [x for x in range(self._bins)]
         p.vbar(
             x="_bin_id",
             top="_bin_count",
@@ -133,16 +136,40 @@ class ValueCountHistogram(MissingnessPlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
+        p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
 
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        pass
+        selected_columns = list(
+            self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
+        )
+        return Selection(
+            columns=self._data.invert_column_selection(selected_columns)
+        )
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        pass
+        bin_indices_pd_series = self._hist_data["_bin_id"][
+            self._hist_data.index.isin(selection.columns)
+        ]
+        bin_indices = list(bin_indices_pd_series)
+        return bin_indices
+
+    def _get_xtick_labels(self):
+        key_list = [str(x) for x in range(10)]
+        xtick_labels = dict.fromkeys(key_list)
+        key_list
+        for key in xtick_labels:
+            if not int(key):
+                xtick_labels[key] = "0"
+            else:
+                ind = int(key)
+                left = int(np.ceil(self._hist_edges[ind]))
+                right = int(np.floor(self._hist_edges[ind + 1]))
+                xtick_labels[key] = f"{left}-{right}"
+        return xtick_labels
 
 
 class CombinationHeatmap(MissingnessPlotBase):

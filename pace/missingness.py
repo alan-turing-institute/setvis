@@ -3,6 +3,12 @@ import pandas as pd
 from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
 
+# +++++++++++ remove again +++++++++
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+# +++++++++++ remove again +++++++++
 # alias for Set
 class Col(Set):
     pass
@@ -279,10 +285,15 @@ def value_count_histogram_data(m: Missingness, bins: int = 10):
         {"_count": [m.count_matching_records(Col(label)) for label in labels]},
         index=labels,
     )
-    min_val = data["_count"].min()
-    max_val = data["_count"].max()
-    bin_width = (max_val - min_val) / (bins - 1)
-    data["_bin_id"] = data["_count"].apply(
-        lambda x: int(np.ceil((x - min_val) / bin_width))
-    )
-    return data
+    # inconsistency how np.histogram() and np.digitize() handle right edge
+    # of the right-most bin. Half open bins, except last one for np.histogram.
+    # np.fmin() used to fix this.
+    if not data["_count"].min():  # if there are never missing fields
+        hist_count, hist_edges = np.histogram(data, bins=bins - 1)
+        data["_bin_id"] = np.fmin(np.digitize(data, hist_edges), bins - 1)
+        data["_bin_id"][data["_count"] == 0] = 0
+        hist_edges = np.insert(hist_edges, 1, 1)
+    else:
+        hist_count, hist_edges = np.histogram(data, bins=bins)
+        data["_bin_id"] = np.fmin(np.digitize(data, hist_edges), bins - 1)
+    return data, hist_edges
