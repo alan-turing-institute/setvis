@@ -1,6 +1,6 @@
 import pydantic
 from typing import Optional, List, Dict, Sequence, Union
-from .missingness import Missingness
+from .missingness import Missingness, selection_to_series
 
 
 class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
@@ -80,6 +80,16 @@ class SelectionHistory:
         for ancestor in reversed(self.ancestors(name)):
             m = drop_selection(m, self._selections[ancestor].exclude)
         return m
+
+    def selected_records(
+        self,
+        name: Optional[str] = None,
+        base_selection: Optional[str] = None,
+        sort=True,
+    ):
+        base_records = self.missingness(base_selection).records()
+        selected_records = self.missingness(name).records()
+        return selection_to_series(base_records, selected_records, sort)
 
     def dict(self):
         return {k: v.dict() for k, v in self._selections.items()}

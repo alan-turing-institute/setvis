@@ -19,6 +19,11 @@ def _invert_selection(universe, selection):
         return list(np.array(universe)[~np.in1d(universe, selection)])
 
 
+def selection_to_series(universe, selection, sort=True):
+    result = pd.Series(np.in1d(universe, selection), index=universe,)
+    return result.sort_index() if sort else result
+
+
 class Missingness:
 
     _combination_id_to_columns: pd.DataFrame
