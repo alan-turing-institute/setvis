@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Sequence, Union
 from .missingness import Missingness
 
 
-class Selection(pydantic.BaseModel, frozen=True, extra='forbid'):
+class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
     columns: List = []
     records: List = []
     combinations: List = []
@@ -11,7 +11,7 @@ class Selection(pydantic.BaseModel, frozen=True, extra='forbid'):
 
 # Selections specify the items that they exclude, so that a nested
 # selection can be stored efficiently
-class SubSelection(pydantic.BaseModel, extra='forbid'):
+class SubSelection(pydantic.BaseModel, extra="forbid"):
     parent: Optional[str] = None
     exclude: Selection = Selection()
 
