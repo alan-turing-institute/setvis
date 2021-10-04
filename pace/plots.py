@@ -368,8 +368,11 @@ class PlotSession:
         self._selection_history.new_selection(name, based_on)
         self._selection_history[name] = selection
 
-    def selected_records(self, name):
+    def selected_records(self, name=None):
         return self._selection_history.selected_records(name)
+
+    def missingness(self, name=None):
+        return self._selection_history.missingness(name)
 
     def dict(self):
         """Returns a json-serializable dict representing the session
