@@ -346,6 +346,31 @@ class PlotSession:
     # ********"""
         )
 
+    def add_selection(
+        self,
+        name,
+        based_on=None,
+        columns=None,
+        combinations=None,
+        records=None,
+        invert=False,
+    ):
+        if not invert:
+            parent = self._selection_history.missingness(based_on)
+            columns = parent.invert_column_selection(columns)
+            combinations = parent.invert_combination_selection(combinations)
+            records = parent.invert_record_selection(records)
+
+        selection = Selection(
+            columns=columns, combinations=combinations, records=records
+        )
+
+        self._selection_history.new_selection(name, based_on)
+        self._selection_history[name] = selection
+
+    def selected_records(self, name):
+        return self._selection_history.selected_records(name)
+
     def dict(self):
         """Returns a json-serializable dict representing the session
 
