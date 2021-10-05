@@ -297,3 +297,13 @@ def value_count_histogram_data(m: Missingness, bins: int = 10):
         hist_count, hist_edges = np.histogram(data, bins=bins)
         data["_bin_id"] = np.fmin(np.digitize(data, hist_edges), bins - 1)
     return data, hist_edges
+
+
+def combination_bar_chart_data(m: Missingness):  # function necessary
+    # sort with decreasign order
+    return (
+        m.count_combinations()
+        .sort_values("_count", ascending=False)
+        .reset_index()
+    )
+

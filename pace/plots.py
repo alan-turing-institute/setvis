@@ -172,6 +172,63 @@ class ValueCountHistogram(MissingnessPlotBase):
         return xtick_labels
 
 
+class CombinationBarChart(MissingnessPlotBase):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
+        self._data = data
+
+        self.source = ColumnDataSource(
+            missingness.combination_bar_chart_data(data)
+        )
+
+        # self.source.selected.indices = self.selection_to_plot_indices(
+        #     initial_selection
+        # )
+
+        self.bar_width = 1.0
+        self.tools = ["box_select", "tap", "reset"]
+        self.height = 960
+        self.width = 960
+        self.linecolor = "white"
+        self.title = "Combination bar chart"
+        self.xlabel = "Combinations"
+        self.ylabel = "Number of missing records"
+
+    def plot(self) -> bokeh.plotting.Figure:
+        p = figure(
+            title=self.title,
+            tools=self.tools,
+            width=self.width,
+            height=self.height,
+            # x_range=self._data.columns(),
+        )
+        p.vbar(
+            x="index",
+            top="_count",
+            width=self.bar_width,
+            source=self.source,
+            line_color=self.linecolor,
+        )
+        p.xaxis.axis_label = self.xlabel
+        p.yaxis.axis_label = self.ylabel
+        p.xaxis.major_tick_line_color = None
+        p.xaxis.minor_tick_line_color = None  # turn off x-axis minor ticks
+        p.xaxis.major_label_text_color = None
+        return p
+
+    def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        # we get indices of sorted combination in plot -> get right index (not sorted)
+        pass
+        # n_combinations = len(self._data.combinations())
+        # combination_id = self._data.combinations().index.values
+        # include = list({combination_id[i % n_combinations] for i in indices})
+        # exclude = self._data.invert_combination_selection(include)
+
+        # return Selection(combinations=exclude)
+
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        pass
+
+
 class CombinationHeatmap(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
@@ -415,7 +472,14 @@ class PlotSession:
         p3 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
         tab3 = Panel(child=p3, title="Combination heatmap")
 
-        tabs = Tabs(tabs=[tab1, tab2, tab3], active=self._active_tabs[name])
+        p4 = self._add_subplot(
+            CombinationBarChart, name, "combination_bar_chart"
+        )
+        tab4 = Panel(child=p4, title="Combination bar chart")
+
+        tabs = Tabs(
+            tabs=[tab1, tab2, tab3, tab4], active=self._active_tabs[name]
+        )
         tabs.js_on_change("active", self._active_tab_callback(name))
 
         show(tabs)
