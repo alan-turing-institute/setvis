@@ -1,0 +1,35 @@
+{
+ "selection_history": {
+  "all data": {
+   "parent": null,
+   "exclude": {
+    "columns": [],
+    "records": [],
+    "combinations": []
+   }
+  },
+  "combinations": {
+   "parent": null,
+   "exclude": {
+    "columns": [],
+    "records": [],
+    "combinations": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     13,
+     16
+    ]
+   }
+  }
+ },
+ "active_tabs": {
+  "all data": 0,
+  "combinations": 1
+ }
+}
