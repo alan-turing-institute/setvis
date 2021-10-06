@@ -371,8 +371,8 @@ class PlotSession:
         self._selection_history.new_selection(name, based_on)
         self._selection_history[name] = selection
 
-    def selected_records(self, name=None):
-        return self._selection_history.selected_records(name)
+    def selected_records(self, name=None, base_selection=None):
+        return self._selection_history.selected_records(name, base_selection)
 
     def missingness(self, name=None):
         return self._selection_history.missingness(name)
