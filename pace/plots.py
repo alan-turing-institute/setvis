@@ -230,7 +230,9 @@ class PlotSession:
     # collected.
     _instances = WeakValueDictionary()
 
-    def __init__(self, df, session_file=None):
+    def __init__(self, df, session_file=None, verbose=False):
+        self._verbose = verbose
+
         bokeh.io.output_notebook(hide_banner=True)
 
         m = Missingness.from_data_frame(df)
@@ -338,13 +340,14 @@ class PlotSession:
 
         show(tabs)
 
-        logging.info(
-            f"""
+        if self._verbose:
+            logging.info(
+                f"""
 
     # ********
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
     # ********"""
-        )
+            )
 
     def add_selection(
         self,
