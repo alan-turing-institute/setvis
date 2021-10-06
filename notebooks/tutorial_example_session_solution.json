@@ -26,10 +26,26 @@
      16
     ]
    }
+  },
+  "gaps": {
+   "parent": "combinations",
+   "exclude": {
+    "columns": [],
+    "records": [],
+    "combinations": [
+     8,
+     10,
+     11,
+     12,
+     14,
+     15
+    ]
+   }
   }
  },
  "active_tabs": {
   "all data": 0,
-  "combinations": 1
+  "combinations": 1,
+  "gaps": 1
  }
 }
