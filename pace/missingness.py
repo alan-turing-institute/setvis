@@ -276,3 +276,75 @@ def value_bar_chart_data(m: Missingness):
         {"_count": [m.count_matching_records(Col(label)) for label in labels]},
         index=labels,
     )
+
+
+def value_count_histogram_data(m: Missingness, bins: int = 10):
+    labels = m.columns()
+    data = pd.DataFrame(
+        {"_count": [m.count_matching_records(Col(label)) for label in labels]},
+        index=labels,
+    )
+    data["_bin_id"] = 1
+    data_subset = data[
+        data["_count"] != 0
+    ]  # TODO: problem when hist based on selection
+    if not data["_count"].min():  # if there are fields that are never missing
+        # bins = bins - 1
+        _, hist_edges = np.histogram(
+            data_subset, bins=bins - 1
+        )  # is this properly implemented??
+        bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins - 1)
+        bin_ids = bin_ids + 1
+    else:
+        _, hist_edges = np.histogram(data_subset, bins=bins)
+        bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins)
+    data["_bin_id"].loc[data_subset.index] = bin_ids[:, 0]
+
+    # dict_data is for plotting
+    keys = [x + 1 for x in range(bins)]
+    vals = [data[data["_bin_id"] == x].shape[0] for x in keys]
+    column_data_source = pd.DataFrame({"_bin_id": keys, "_bin_count": vals,})
+    return data, column_data_source, hist_edges
+
+
+def combination_bar_chart_data(m: Missingness):
+    # sort with decreasign order
+    return (
+        m.count_combinations()
+        .sort_values("_count", ascending=False)
+        .reset_index()
+    )
+
+
+def combination_count_histogram_data(m: Missingness, bins: int = 10):
+    labels = list(m.count_combinations().index.values)
+    data = pd.DataFrame(
+        {"_count": m.count_combinations()["_count"]}, index=labels,
+    )
+    data.index.name = "combination_id"
+    _, edges = np.histogram(data["_count"], bins)
+    bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
+
+    data["_bin_id"] = bin_ids - 1
+
+    # dict for plotting
+    bins = [x for x in range(bins)]
+    count = [data[data["_bin_id"] == x].shape[0] for x in bins]
+    column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
+    return data, column_data_source, edges
+
+
+def combination_length_histogram_data(m: Missingness, bins: int = 10):
+    labels = list(m.combinations().index.values)
+    data = pd.DataFrame(
+        {"_length": list(m.combinations().sum(axis=1))}, index=labels,
+    )
+    _, edges = np.histogram(data["_length"], bins)
+    bin_ids = np.fmin(np.digitize(data["_length"], edges), bins)
+    data["_bin_id"] = bin_ids - 1
+
+    # dict for plotting
+    bins = [x for x in range(bins)]
+    count = [data[data["_bin_id"] == x].shape[0] for x in bins]
+    column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
+    return data, column_data_source, edges
