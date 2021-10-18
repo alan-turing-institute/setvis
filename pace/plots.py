@@ -101,13 +101,10 @@ class ValueCountHistogram(MissingnessPlotBase):
         self._bins = 10
         (
             self._hist_data,
+            self._column_data_source,
             self._hist_edges,
         ) = missingness.value_count_histogram_data(data, self._bins)
-        self.source = ColumnDataSource(
-            self._hist_data.groupby(by=["_bin_id"])
-            .size()
-            .reset_index(name="_bin_count")
-        )
+        self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
         )
@@ -128,7 +125,10 @@ class ValueCountHistogram(MissingnessPlotBase):
             height=self.height,
             # x_range=self._data.columns(),
         )
-        p.xaxis.ticker = [x for x in range(self._bins)]
+        p.xaxis.ticker = [x + 1 for x in range(self._bins)]
+        p.yaxis.ticker = [
+            x + 1 for x in range(self._column_data_source["_bin_count"].max())
+        ]
         p.vbar(
             x="_bin_id",
             top="_bin_count",
@@ -143,31 +143,49 @@ class ValueCountHistogram(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        selected_columns = list(
-            self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
+        bin_ids = [
+            x + 1 for x in indices
+        ]  # bin_ids for 10 bins are 1-10, indices plot 0-9
+        include = list(
+            self._hist_data[self._hist_data["_bin_id"].isin(bin_ids)].index
         )
-        return Selection(
-            columns=self._data.invert_column_selection(selected_columns)
-        )
+        exclude = self._data.invert_column_selection(include)
+        return Selection(columns=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        bin_indices_pd_series = self._hist_data["_bin_id"][
-            self._hist_data.index.isin(selection.columns)
-        ]
-        bin_indices = list(bin_indices_pd_series)
-        return bin_indices
+        col_labels = self._data.columns()
+        col_indices_np_tuple = np.where(
+            np.in1d(col_labels, selection.columns, invert=True)
+        )
+        col_indices = list(col_indices_np_tuple[0])
+        col_selection = [col_labels[i] for i in col_indices]
+        indices = list(
+            self._hist_data["_bin_id"][
+                self._hist_data.index.isin(col_selection)
+            ]
+            .sort_values()
+            .unique()
+        )
+        indices = [x - 1 for x in indices]
+        return indices
 
     def _get_xtick_labels(self):
-        key_list = [str(x) for x in range(10)]
+        key_list = [str(x + 1) for x in range(self._bins)]
         xtick_labels = dict.fromkeys(key_list)
-        key_list
-        for key in xtick_labels:
-            if not int(key):
-                xtick_labels[key] = "0"
-            else:
-                ind = int(key)
-                left = int(np.ceil(self._hist_edges[ind]))
-                right = int(np.floor(self._hist_edges[ind + 1]))
+        if self._hist_data["_count"].min() == 0:
+            for i in range(self._bins):
+                key = str(i + 1)
+                if not i:
+                    xtick_labels[key] = "0"
+                else:
+                    left = int(np.ceil(self._hist_edges[i - 1]))
+                    right = int(np.floor(self._hist_edges[i]))
+                    xtick_labels[key] = f"{left}-{right}"
+        else:
+            for i in range(self._bins):
+                key = str(i + 1)
+                left = int(np.ceil(self._hist_edges[i]))
+                right = int(np.floor(self._hist_edges[i + 1]))
                 xtick_labels[key] = f"{left}-{right}"
         return xtick_labels
 
@@ -175,14 +193,12 @@ class ValueCountHistogram(MissingnessPlotBase):
 class CombinationBarChart(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
+        self._bar_data = missingness.combination_bar_chart_data(data)
+        self.source = ColumnDataSource(self._bar_data)
 
-        self.source = ColumnDataSource(
-            missingness.combination_bar_chart_data(data)
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
         )
-
-        # self.source.selected.indices = self.selection_to_plot_indices(
-        #     initial_selection
-        # )
 
         self.bar_width = 1.0
         self.tools = ["box_select", "tap", "reset"]
@@ -216,17 +232,152 @@ class CombinationBarChart(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        # we get indices of sorted combination in plot -> get right index (not sorted)
-        pass
-        # n_combinations = len(self._data.combinations())
-        # combination_id = self._data.combinations().index.values
-        # include = list({combination_id[i % n_combinations] for i in indices})
-        # exclude = self._data.invert_combination_selection(include)
-
-        # return Selection(combinations=exclude)
+        include = list(self._bar_data["combination_id"].iloc[indices])
+        exclude = self._data.invert_combination_selection(include)
+        return Selection(combinations=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        pass
+        combination_ids_tuple = np.where(
+            np.in1d(
+                self._data.combinations().index,
+                selection.combinations,
+                invert=True,
+            )
+        )
+        combination_ids = combination_ids_tuple[0]
+
+        bar_indices = list(
+            self._bar_data[
+                self._bar_data["combination_id"].isin(combination_ids)
+            ].index
+        )
+        return bar_indices
+
+
+class CombinationCountHistogram(MissingnessPlotBase):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
+        self._data = data
+        self._bins = 10
+        (
+            self._hist_data,
+            self._column_data_source,
+        ) = missingness.combination_count_histogram_data(data, self._bins)
+        self.source = ColumnDataSource(self._column_data_source)
+
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
+        )
+
+        self.bar_width = 1.0
+        self.tools = ["box_select", "tap", "reset"]
+        self.height = 960
+        self.width = 960
+        self.linecolor = "white"
+        self.title = "Combination count histogram"
+        self.xlabel = "Number of records"
+        self.ylabel = "Number of combinations"
+
+    def plot(self) -> bokeh.plotting.Figure:
+        p = figure(
+            title=self.title,
+            tools=self.tools,
+            width=self.width,
+            height=self.height,
+            # x_range=self._data.columns(),
+        )
+        p.vbar(
+            x="_bin",
+            top="_count",
+            width=self.bar_width,
+            source=self.source,
+            line_color=self.linecolor,
+        )
+        p.xaxis.axis_label = self.xlabel
+        p.yaxis.axis_label = self.ylabel
+        # fix xaxis ticklabels
+        return p
+
+    def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        include = list(
+            self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
+        )
+        exclude = self._data.invert_combination_selection(include)
+        return Selection(combinations=exclude)
+
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        combination_ids_tuple = np.where(
+            np.in1d(
+                self._data.combinations().index,
+                selection.combinations,
+                invert=True,
+            )
+        )
+        combination_ids = combination_ids_tuple[0]
+        indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
+        return indices
+
+
+class CombinationLengthHistogram(MissingnessPlotBase):
+    def __init__(self, data: Missingness, initial_selection=Selection()):
+        self._data = data
+        self._bins = 10
+        (
+            self._hist_data,
+            self._column_data_source,
+        ) = missingness.combination_length_histogram_data(data, self._bins)
+        self.source = ColumnDataSource(self._column_data_source)
+
+        self.source.selected.indices = self.selection_to_plot_indices(
+            initial_selection
+        )
+
+        self.bar_width = 1.0
+        self.tools = ["box_select", "tap", "reset"]
+        self.height = 960
+        self.width = 960
+        self.linecolor = "white"
+        self.title = "Combination length histogram"
+        self.xlabel = "Combination length"
+        self.ylabel = "Number of combinations"
+
+    def plot(self) -> bokeh.plotting.Figure:
+        p = figure(
+            title=self.title,
+            tools=self.tools,
+            width=self.width,
+            height=self.height,
+            # x_range=self._data.columns(),
+        )
+        p.vbar(
+            x="_bin",
+            top="_count",
+            width=self.bar_width,
+            source=self.source,
+            line_color=self.linecolor,
+        )
+        p.xaxis.axis_label = self.xlabel
+        p.yaxis.axis_label = self.ylabel
+        # TODO: fix xaxis ticklabels, fix ticks yaxis
+        return p
+
+    def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        include = list(
+            self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
+        )
+        exclude = self._data.invert_combination_selection(include)
+        return Selection(combinations=exclude)
+
+    def selection_to_plot_indices(self, selection: Selection) -> List[int]:
+        combination_ids_tuple = np.where(
+            np.in1d(
+                self._data.combinations().index,
+                selection.combinations,
+                invert=True,
+            )
+        )
+        combination_ids = combination_ids_tuple[0]
+        indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
+        return indices
 
 
 class CombinationHeatmap(MissingnessPlotBase):
@@ -401,6 +552,7 @@ class PlotSession:
             },
             code="""
             var indices = source.selected.indices;
+            console.log(indices)
             var kernel = IPython.notebook.kernel;
             // ensure that pace.plots is imported under its canonical name
             kernel.execute("import pace.plots");
@@ -458,6 +610,7 @@ class PlotSession:
         """Creates all the plot options and shows them in a tab layout"""
 
         self._selection_history.new_selection(name, based_on)
+
         if name not in self._active_tabs:
             self._active_tabs[name] = 0
 
@@ -477,8 +630,19 @@ class PlotSession:
         )
         tab4 = Panel(child=p4, title="Combination bar chart")
 
+        p5 = self._add_subplot(
+            CombinationCountHistogram, name, "combination_count_histogram"
+        )
+        tab5 = Panel(child=p5, title="Combination count histogram")
+
+        p6 = self._add_subplot(
+            CombinationLengthHistogram, name, "combination_length_histogram"
+        )
+        tab6 = Panel(child=p6, title="Combination length histogram")
+
         tabs = Tabs(
-            tabs=[tab1, tab2, tab3, tab4], active=self._active_tabs[name]
+            tabs=[tab1, tab2, tab3, tab4, tab5, tab6],
+            active=self._active_tabs[name],
         )
         tabs.js_on_change("active", self._active_tab_callback(name))
 
