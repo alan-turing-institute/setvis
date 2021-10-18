@@ -3,12 +3,6 @@ import pandas as pd
 from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
 
-# +++++++++++ remove again +++++++++
-import logging
-
-# Set up logging
-logger = logging.getLogger(__name__)
-# +++++++++++ remove again +++++++++
 # alias for Set
 class Col(Set):
     pass
