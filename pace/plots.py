@@ -539,7 +539,9 @@ class PlotSession:
     # collected.
     _instances = WeakValueDictionary()
 
-    def __init__(self, df, session_file=None):
+    def __init__(self, df, session_file=None, verbose=False):
+        self._verbose = verbose
+
         bokeh.io.output_notebook(hide_banner=True)
 
         m = Missingness.from_data_frame(df)
@@ -672,13 +674,14 @@ class PlotSession:
 
         show(tabs)
 
-        logging.info(
-            f"""
+        if self._verbose:
+            logging.info(
+                f"""
 
     # ********
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
     # ********"""
-        )
+            )
 
     def add_selection(
         self,
@@ -702,8 +705,11 @@ class PlotSession:
         self._selection_history.new_selection(name, based_on)
         self._selection_history[name] = selection
 
-    def selected_records(self, name):
-        return self._selection_history.selected_records(name)
+    def selected_records(self, name=None, base_selection=None):
+        return self._selection_history.selected_records(name, base_selection)
+
+    def missingness(self, name=None):
+        return self._selection_history.missingness(name)
 
     def dict(self):
         """Returns a json-serializable dict representing the session
