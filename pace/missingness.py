@@ -291,7 +291,7 @@ def value_count_histogram_data(m: Missingness, bins: int = 10):
     ]  # TODO: problem when hist based on selection
     if not data["_count"].min():  # if there are fields that are never missing
         # bins = bins - 1
-        hist_count, hist_edges = np.histogram(
+        _, hist_edges = np.histogram(
             data_subset, bins=bins - 1
         )  # is this properly implemented??
         bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins - 1)
@@ -324,9 +324,7 @@ def combination_count_histogram_data(m: Missingness, bins: int = 10):
     )
     data.index.name = "combination_id"
     _, edges = np.histogram(data["_count"], bins)
-    bin_ids = np.fmin(
-        np.digitize(data["_count"], edges), bins
-    )  # TODO: bins-1 here?
+    bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
 
     data["_bin_id"] = bin_ids - 1
 
@@ -334,7 +332,7 @@ def combination_count_histogram_data(m: Missingness, bins: int = 10):
     bins = [x for x in range(bins)]
     count = [data[data["_bin_id"] == x].shape[0] for x in bins]
     column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
-    return data, column_data_source
+    return data, column_data_source, edges
 
 
 def combination_length_histogram_data(m: Missingness, bins: int = 10):
@@ -350,4 +348,4 @@ def combination_length_histogram_data(m: Missingness, bins: int = 10):
     bins = [x for x in range(bins)]
     count = [data[data["_bin_id"] == x].shape[0] for x in bins]
     column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
-    return data, column_data_source
+    return data, column_data_source, edges

@@ -261,6 +261,7 @@ class CombinationCountHistogram(MissingnessPlotBase):
         (
             self._hist_data,
             self._column_data_source,
+            self._hist_edges,
         ) = missingness.combination_count_histogram_data(data, self._bins)
         self.source = ColumnDataSource(self._column_data_source)
 
@@ -292,6 +293,8 @@ class CombinationCountHistogram(MissingnessPlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
+        p.xaxis.ticker = [x for x in range(self._bins)]
+        p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
         # fix xaxis ticklabels
@@ -316,6 +319,15 @@ class CombinationCountHistogram(MissingnessPlotBase):
         indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
         return indices
 
+    def _get_xtick_labels(self):
+        key_list = [str(x) for x in range(self._bins)]
+        xtick_labels = dict.fromkeys(key_list)
+        for i in range(self._bins):  # write as list comprehension?
+            left = int(np.ceil(self._hist_edges[i]))
+            right = int(np.floor(self._hist_edges[i + 1]))
+            xtick_labels[str(i)] = f"{left}-{right}"
+        return xtick_labels
+
 
 class CombinationLengthHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
@@ -324,6 +336,7 @@ class CombinationLengthHistogram(MissingnessPlotBase):
         (
             self._hist_data,
             self._column_data_source,
+            self._hist_edges,
         ) = missingness.combination_length_histogram_data(data, self._bins)
         self.source = ColumnDataSource(self._column_data_source)
 
@@ -355,6 +368,8 @@ class CombinationLengthHistogram(MissingnessPlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
+        p.xaxis.ticker = [x for x in range(self._bins)]
+        p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
         # TODO: fix xaxis ticklabels, fix ticks yaxis
@@ -378,6 +393,15 @@ class CombinationLengthHistogram(MissingnessPlotBase):
         combination_ids = combination_ids_tuple[0]
         indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
         return indices
+
+    def _get_xtick_labels(self):
+        key_list = [str(x) for x in range(self._bins)]
+        xtick_labels = dict.fromkeys(key_list)
+        for i in range(self._bins):  # write as list comprehension?
+            left = int(np.ceil(self._hist_edges[i]))
+            right = int(np.floor(self._hist_edges[i + 1]))
+            xtick_labels[str(i)] = f"{left}-{right}"
+        return xtick_labels
 
 
 class CombinationHeatmap(MissingnessPlotBase):
