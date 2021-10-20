@@ -1,5 +1,9 @@
 import numpy as np
 import pandas as pd
+import psycopg2
+import psycopg2.extensions
+from psycopg2 import sql
+
 from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
 
@@ -259,8 +263,105 @@ class Missingness:
         return cls.from_data_frame(df)
 
     @classmethod
-    def from_postgres(cls, conn):
-        raise NotImplementedError()
+    def from_postgres(
+        cls,
+        conn: psycopg2.extensions.connection,
+        relation: str,
+        key: str,
+        schema: Optional[str] = None,
+    ):
+        curs = conn.cursor()
+
+        # Determine the column headers from a selection of zero records
+        curs.execute(
+            sql.SQL("SELECT * FROM {schema}.{relation} LIMIT 0").format(
+                schema=sql.Identifier(schema),
+                relation=sql.Identifier(relation),
+            )
+        )
+        column_names = [c.name for c in curs.description]
+
+        assert key in column_names
+
+        columns_excl_key = column_names
+        columns_excl_key.remove(key)
+
+        columns_excl_key_sql = sql.SQL(",").join(
+            sql.Identifier(c) for c in columns_excl_key
+        )
+
+        # First query: combinations
+
+        selection_list = [sql.SQL("{key}").format(key=sql.Identifier(key))] + [
+            sql.SQL("{col} IS NULL AS {col}").format(col=sql.Identifier(col))
+            for col in columns_excl_key
+        ]
+        query_missing = sql.SQL("SELECT {0} FROM {1}.{2}").format(
+            sql.SQL(", ").join(selection_list),
+            sql.Identifier(schema),
+            sql.Identifier(relation),
+        )
+
+        query1 = sql.SQL(
+            """
+            SELECT ROW_NUMBER() OVER (
+              ORDER BY (
+                {columns_excl_key_sql}
+              )
+            ) AS combination_id, *
+            FROM (
+              SELECT {columns_excl_key_sql}
+              FROM ({query_missing}) AS query_missing
+              GROUP BY ({columns_excl_key_sql})
+            ) AS s
+            """
+        ).format(
+            columns_excl_key_sql=columns_excl_key_sql,
+            query_missing=query_missing,
+        )
+
+        combination_id_to_columns = pd.read_sql(query1, conn)
+        combination_id_to_columns[
+            "combination_id"
+        ] = combination_id_to_columns["combination_id"].apply(lambda x: x - 1)
+        combination_id_to_columns = combination_id_to_columns.set_index(
+            "combination_id"
+        )
+
+        # Second query: combination id to records
+
+        query2 = sql.SQL(
+            """
+            SELECT
+              {key}, combination_id
+            FROM
+              ({query_missing}) AS query_missing
+            NATURAL JOIN
+              ({query1}) AS query1
+            """
+        ).format(
+            key=sql.Identifier(key),
+            query_missing=query_missing,
+            query1=query1,
+        )
+
+        print(query1.as_string(conn))
+
+        combination_id_to_records = (
+            pd.read_sql(query2, conn)
+            .apply(lambda x: x - 1)
+            .set_index("combination_id")
+            .sort_index()
+        )
+
+        combination_id_to_records = combination_id_to_records.rename(
+            columns={key: "_record_id"}
+        )
+
+        return cls(
+            combination_id_to_records=combination_id_to_records,
+            combination_id_to_columns=combination_id_to_columns,
+        )
 
 
 def heatmap_data(m: Missingness):
