@@ -270,93 +270,100 @@ class Missingness:
         key: str,
         schema: Optional[str] = None,
     ):
-        curs = conn.cursor()
+        # Start a transaction on the connection
+        with conn:
+            with conn.cursor() as curs:
+                # Determine the column headers from an empty selection
+                curs.execute(
+                    sql.SQL(
+                        "SELECT * FROM {schema}.{relation} LIMIT 0"
+                    ).format(
+                        schema=sql.Identifier(schema),
+                        relation=sql.Identifier(relation),
+                    )
+                )
+                column_names = [c.name for c in curs.description]
 
-        # Determine the column headers from a selection of zero records
-        curs.execute(
-            sql.SQL("SELECT * FROM {schema}.{relation} LIMIT 0").format(
-                schema=sql.Identifier(schema),
-                relation=sql.Identifier(relation),
-            )
-        )
-        column_names = [c.name for c in curs.description]
+                assert key in column_names
 
-        assert key in column_names
+                columns_excl_key = [c for c in column_names if c != key]
 
-        columns_excl_key = column_names
-        columns_excl_key.remove(key)
+                # Make a temporary table containing the
+                # (boolean-valued) missingness of each non-key column
+                columns_missing = [
+                    sql.SQL("{col} IS NULL AS {col}").format(
+                        col=sql.Identifier(col)
+                    )
+                    for col in columns_excl_key
+                ]
+                curs.execute(
+                    sql.SQL(
+                        """
+                        CREATE TEMPORARY TABLE temp_missing
+                        ON COMMIT DROP
+                        AS
+                          SELECT {key}, {columns_missing}
+                          FROM {schema}.{relation}
+                        """
+                    ).format(
+                        key=sql.Identifier(key),
+                        columns_missing=sql.SQL(", ").join(columns_missing),
+                        schema=sql.Identifier(schema),
+                        relation=sql.Identifier(relation),
+                    )
+                )
 
-        columns_excl_key_sql = sql.SQL(",").join(
-            sql.Identifier(c) for c in columns_excl_key
-        )
+                # Make another temporary table where each record is
+                # labelled with a number identifying its missingness
+                # combination
+                curs.execute(
+                    sql.SQL(
+                        """
+                        CREATE TEMPORARY TABLE temp_combinations
+                        ON COMMIT DROP
+                        AS
+                          SELECT ROW_NUMBER() OVER (
+                            ORDER BY ({columns_excl_key})
+                          ) - 1
+                          AS combination_id, *
+                          FROM (
+                            SELECT {columns_excl_key}
+                            FROM temp_missing
+                            GROUP BY ({columns_excl_key})
+                          ) AS s
+                        """
+                    ).format(
+                        columns_excl_key=sql.SQL(",").join(
+                            sql.Identifier(c) for c in columns_excl_key
+                        )
+                    )
+                )
 
-        # First query: combinations
+                # First query: All missingness combinations
+                combination_id_to_columns = (
+                    pd.read_sql("SELECT * FROM temp_combinations", conn)
+                    .set_index("combination_id")
+                    .sort_index()
+                )
 
-        selection_list = [sql.SQL("{key}").format(key=sql.Identifier(key))] + [
-            sql.SQL("{col} IS NULL AS {col}").format(col=sql.Identifier(col))
-            for col in columns_excl_key
-        ]
-        query_missing = sql.SQL("SELECT {0} FROM {1}.{2}").format(
-            sql.SQL(", ").join(selection_list),
-            sql.Identifier(schema),
-            sql.Identifier(relation),
-        )
+                # Second query: combination id to record id
+                query2 = sql.SQL(
+                    """
+                    SELECT
+                      combination_id, {key}
+                    FROM
+                      temp_missing
+                    NATURAL JOIN
+                      temp_combinations
+                    """
+                ).format(key=sql.Identifier(key))
 
-        query1 = sql.SQL(
-            """
-            SELECT ROW_NUMBER() OVER (
-              ORDER BY (
-                {columns_excl_key_sql}
-              )
-            ) AS combination_id, *
-            FROM (
-              SELECT {columns_excl_key_sql}
-              FROM ({query_missing}) AS query_missing
-              GROUP BY ({columns_excl_key_sql})
-            ) AS s
-            """
-        ).format(
-            columns_excl_key_sql=columns_excl_key_sql,
-            query_missing=query_missing,
-        )
-
-        combination_id_to_columns = pd.read_sql(query1, conn)
-        combination_id_to_columns[
-            "combination_id"
-        ] = combination_id_to_columns["combination_id"].apply(lambda x: x - 1)
-        combination_id_to_columns = combination_id_to_columns.set_index(
-            "combination_id"
-        )
-
-        # Second query: combination id to records
-
-        query2 = sql.SQL(
-            """
-            SELECT
-              {key}, combination_id
-            FROM
-              ({query_missing}) AS query_missing
-            NATURAL JOIN
-              ({query1}) AS query1
-            """
-        ).format(
-            key=sql.Identifier(key),
-            query_missing=query_missing,
-            query1=query1,
-        )
-
-        print(query1.as_string(conn))
-
-        combination_id_to_records = (
-            pd.read_sql(query2, conn)
-            .apply(lambda x: x - 1)
-            .set_index("combination_id")
-            .sort_index()
-        )
-
-        combination_id_to_records = combination_id_to_records.rename(
-            columns={key: "_record_id"}
-        )
+                combination_id_to_records = (
+                    pd.read_sql(query2, conn)
+                    .set_index("combination_id")
+                    .sort_index()
+                    .rename(columns={key: "_record_id"})
+                )
 
         return cls(
             combination_id_to_records=combination_id_to_records,
