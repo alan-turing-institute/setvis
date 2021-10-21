@@ -340,17 +340,22 @@ class Missingness:
                 )
 
                 # First query: All missingness combinations
-                combination_id_to_columns = (
-                    pd.read_sql("SELECT * FROM temp_combinations", conn)
-                    .set_index("combination_id")
-                    .sort_index()
+                query1 = sql.SQL(
+                    """
+                    SELECT * FROM temp_combinations
+                    ORDER BY combination_id
+                    """
+                )
+
+                combination_id_to_columns = pd.read_sql_query(
+                    query1, conn, index_col="combination_id",
                 )
 
                 # Second query: combination id to record id
                 query2 = sql.SQL(
                     """
                     SELECT
-                      combination_id, {key}
+                      combination_id, {key} AS _record_id
                     FROM
                       temp_missing
                     NATURAL JOIN
@@ -358,12 +363,9 @@ class Missingness:
                     """
                 ).format(key=sql.Identifier(key))
 
-                combination_id_to_records = (
-                    pd.read_sql(query2, conn)
-                    .set_index("combination_id")
-                    .sort_index()
-                    .rename(columns={key: "_record_id"})
-                )
+                combination_id_to_records = pd.read_sql_query(
+                    query2, conn, index_col="combination_id",
+                ).sort_index()
 
         return cls(
             combination_id_to_records=combination_id_to_records,
