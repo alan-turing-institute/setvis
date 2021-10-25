@@ -388,7 +388,7 @@ def value_bar_chart_data(m: Missingness):
     )
 
 
-def value_count_histogram_data(m: Missingness, bins: int = 10):
+def value_count_histogram_data(m: Missingness, bins: int = 11):
     labels = m.columns()
     data = pd.DataFrame(
         {"_count": [m.count_matching_records(Col(label)) for label in labels]},

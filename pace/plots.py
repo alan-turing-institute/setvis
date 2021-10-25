@@ -1,4 +1,5 @@
 import json
+from bokeh.models.annotations import ColorBar
 import bokeh.plotting
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS
@@ -58,6 +59,7 @@ class ValueBarChart(MissingnessPlotBase):
         self.height = 960
         self.width = 960
         self.title = "Value bar chart"
+        self.xlabel = "Fields"
         self.ylabel = "Number of missing values"
 
     def plot(self) -> bokeh.plotting.Figure:
@@ -72,6 +74,7 @@ class ValueBarChart(MissingnessPlotBase):
             x="index", top="_count", width=self.bar_width, source=self.source
         )
         p.xaxis.major_label_orientation = "vertical"
+        p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
 
         return p
@@ -98,7 +101,7 @@ class ValueBarChart(MissingnessPlotBase):
 class ValueCountHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
         self._data = data
-        self._bins = 10
+        self._bins = 11
         (
             self._hist_data,
             self._column_data_source,
@@ -207,7 +210,7 @@ class CombinationBarChart(MissingnessPlotBase):
         self.linecolor = "white"
         self.title = "Combination bar chart"
         self.xlabel = "Combinations"
-        self.ylabel = "Number of missing records"
+        self.ylabel = "Number of records"
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
@@ -446,28 +449,29 @@ class CombinationHeatmap(MissingnessPlotBase):
         )
         p.background_fill_color = self.fill
         p.grid.visible = self.grid_visible
-
+        mapper = linear_cmap(
+            field_name="value",
+            palette=list(reversed(Oranges256)),
+            low=1,
+            high=self.c_max,
+            # transparent
+            low_color="#00000000",
+        )
         p.rect(
             y="combination_id_str",
             x="variable",
             source=self.source,
             width=1.0,
             height=1.0,
-            fill_color=linear_cmap(
-                field_name="value",
-                palette=list(reversed(Oranges256)),
-                low=1,
-                high=self.c_max,
-                # transparent
-                low_color="#00000000",
-            ),
+            fill_color=mapper,
             line_color=self.fill,
         )
         p.xaxis.major_label_orientation = "vertical"
         p.yaxis.major_label_text_color = None
         p.yaxis.axis_label = self.ylabel
         p.xaxis.axis_label = self.xlabel
-
+        color_bar = ColorBar(color_mapper=mapper["transform"], width=10)
+        p.add_layout(color_bar, "right")
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
