@@ -539,12 +539,15 @@ class PlotSession:
     # collected.
     _instances = WeakValueDictionary()
 
-    def __init__(self, df, session_file=None, verbose=False):
+    def __init__(self, data, session_file=None, verbose=False):
         self._verbose = verbose
 
         bokeh.io.output_notebook(hide_banner=True)
 
-        m = Missingness.from_data_frame(df)
+        if isinstance(data, pd.DataFrame):
+            m = Missingness.from_data_frame(data)
+        elif isinstance(data, Missingness):
+            m = data
 
         self._plots = {}
 

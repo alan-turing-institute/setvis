@@ -1,5 +1,9 @@
 import numpy as np
 import pandas as pd
+import psycopg2
+import psycopg2.extensions
+from psycopg2 import sql
+
 from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
 
@@ -259,8 +263,114 @@ class Missingness:
         return cls.from_data_frame(df)
 
     @classmethod
-    def from_postgres(cls, conn):
-        raise NotImplementedError()
+    def from_postgres(
+        cls,
+        conn: psycopg2.extensions.connection,
+        relation: str,
+        key: str,
+        schema: Optional[str] = None,
+    ):
+        # Start a transaction on the connection
+        with conn:
+            with conn.cursor() as curs:
+                # Determine the column headers from an empty selection
+                curs.execute(
+                    sql.SQL(
+                        "SELECT * FROM {schema}.{relation} LIMIT 0"
+                    ).format(
+                        schema=sql.Identifier(schema),
+                        relation=sql.Identifier(relation),
+                    )
+                )
+                column_names = [c.name for c in curs.description]
+
+                assert key in column_names
+
+                columns_excl_key = [c for c in column_names if c != key]
+
+                # Make a temporary table containing the
+                # (boolean-valued) missingness of each non-key column
+                columns_missing = [
+                    sql.SQL("{col} IS NULL AS {col}").format(
+                        col=sql.Identifier(col)
+                    )
+                    for col in columns_excl_key
+                ]
+                curs.execute(
+                    sql.SQL(
+                        """
+                        CREATE TEMPORARY TABLE temp_missing
+                        ON COMMIT DROP
+                        AS
+                          SELECT {key}, {columns_missing}
+                          FROM {schema}.{relation}
+                        """
+                    ).format(
+                        key=sql.Identifier(key),
+                        columns_missing=sql.SQL(", ").join(columns_missing),
+                        schema=sql.Identifier(schema),
+                        relation=sql.Identifier(relation),
+                    )
+                )
+
+                # Make another temporary table where each record is
+                # labelled with a number identifying its missingness
+                # combination
+                curs.execute(
+                    sql.SQL(
+                        """
+                        CREATE TEMPORARY TABLE temp_combinations
+                        ON COMMIT DROP
+                        AS
+                          SELECT ROW_NUMBER() OVER (
+                            ORDER BY ({columns_excl_key})
+                          ) - 1
+                          AS combination_id, *
+                          FROM (
+                            SELECT {columns_excl_key}
+                            FROM temp_missing
+                            GROUP BY ({columns_excl_key})
+                          ) AS s
+                        """
+                    ).format(
+                        columns_excl_key=sql.SQL(",").join(
+                            sql.Identifier(c) for c in columns_excl_key
+                        )
+                    )
+                )
+
+                # First query: All missingness combinations
+                query1 = sql.SQL(
+                    """
+                    SELECT * FROM temp_combinations
+                    ORDER BY combination_id
+                    """
+                )
+
+                combination_id_to_columns = pd.read_sql_query(
+                    query1, conn, index_col="combination_id",
+                )
+
+                # Second query: combination id to record id
+                query2 = sql.SQL(
+                    """
+                    SELECT
+                      combination_id, {key} AS _record_id
+                    FROM
+                      temp_missing
+                    NATURAL JOIN
+                      temp_combinations
+                    """
+                ).format(key=sql.Identifier(key))
+
+                combination_id_to_records = pd.read_sql_query(
+                    query2, conn, index_col="combination_id",
+                ).sort_index()
+
+        return cls(
+            combination_id_to_records=combination_id_to_records,
+            combination_id_to_columns=combination_id_to_columns,
+        )
 
 
 def heatmap_data(m: Missingness):
