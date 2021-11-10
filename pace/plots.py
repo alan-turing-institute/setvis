@@ -47,7 +47,7 @@ class ValueBarChart(MissingnessPlotBase):
         self._data = data
 
         self.source = ColumnDataSource(
-            missingness.value_bar_chart_data(data).reset_index()
+            missingness.set_bar_chart_data(data).reset_index()
         )
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -643,33 +643,30 @@ class PlotSession:
         p1 = self._add_subplot(ValueBarChart, name, "value_bar_chart")
         tab1 = Panel(child=p1, title="Value bar chart")
 
-        p2 = self._add_subplot(
-            ValueCountHistogram, name, "value_count_histogram"
-        )
-        tab2 = Panel(child=p2, title="Value count histogram")
+        # p2 = self._add_subplot(
+        #     ValueCountHistogram, name, "value_count_histogram"
+        # )
+        # tab2 = Panel(child=p2, title="Value count histogram")
 
-        p3 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
-        tab3 = Panel(child=p3, title="Combination heatmap")
+        # p3 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
+        # tab3 = Panel(child=p3, title="Combination heatmap")
 
-        p4 = self._add_subplot(
-            CombinationBarChart, name, "combination_bar_chart"
-        )
-        tab4 = Panel(child=p4, title="Combination bar chart")
+        # p4 = self._add_subplot(
+        #     CombinationBarChart, name, "combination_bar_chart"
+        # )
+        # tab4 = Panel(child=p4, title="Combination bar chart")
 
-        p5 = self._add_subplot(
-            CombinationCountHistogram, name, "combination_count_histogram"
-        )
-        tab5 = Panel(child=p5, title="Combination count histogram")
+        # p5 = self._add_subplot(
+        #     CombinationCountHistogram, name, "combination_count_histogram"
+        # )
+        # tab5 = Panel(child=p5, title="Combination count histogram")
 
-        p6 = self._add_subplot(
-            CombinationLengthHistogram, name, "combination_length_histogram"
-        )
-        tab6 = Panel(child=p6, title="Combination length histogram")
+        # p6 = self._add_subplot(
+        #     CombinationLengthHistogram, name, "combination_length_histogram"
+        # )
+        # tab6 = Panel(child=p6, title="Combination length histogram")
 
-        tabs = Tabs(
-            tabs=[tab1, tab2, tab3, tab4, tab5, tab6],
-            active=self._active_tabs[name],
-        )
+        tabs = Tabs(tabs=[tab1], active=self._active_tabs[name],)
         tabs.js_on_change("active", self._active_tab_callback(name))
 
         show(tabs)
