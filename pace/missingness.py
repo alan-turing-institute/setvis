@@ -284,6 +284,67 @@ class Missingness:
         return cls.from_data_frame(df)
 
     @classmethod
+    def from_membership_data_frame(
+        cls,
+        df,
+        membership_column="set_membership",
+        membership_separator="|",
+        **kwargs,
+    ):
+        # This constructor is careful not to produce a 'dense'
+        # dataframe, instead making the membership information into a
+        # `frozenset` and grouping by that.
+
+        grouped = pd.DataFrame(
+            df[membership_column]
+            .fillna("")
+            # `"".split("|")` is `[""]`, which has the convenient consequence of
+            # making a "" label for records that aren't in any set which will
+            # not get dropped later.
+            .str.split(membership_separator)
+            .apply(frozenset)
+        ).groupby(membership_column)
+
+        combination_id_to_records = (
+            pd.DataFrame(grouped.ngroup(), columns=["combination_id"])
+            .rename_axis("_record_id")
+            .reset_index()
+            .set_index("combination_id")
+            .sort_index()
+        )
+
+        mship = pd.DataFrame(
+            pd.DataFrame(grouped.indices.keys())
+            .melt(ignore_index=False)["value"]
+            .dropna()
+            .sort_index()
+        )
+        mship["member"] = 1.0
+        mship_pivot = (
+            mship.pivot(columns=["value"])
+            .droplevel(0, axis=1)
+            .drop("", axis=1)  # remove column for the explicitly 'empty' label
+            .rename_axis(None, axis=1)
+            # Prepend "category@" to the label to make the column labels
+            # consistent with the constructor(s) from 'Format 1' csv files
+            .rename(lambda x: "category@" + x, axis=1)
+            .fillna(0.0)
+            .astype(int)
+        )
+        combination_id_to_columns = mship_pivot.rename_axis("combination_id")
+
+        return cls(
+            combination_id_to_records=combination_id_to_records,
+            combination_id_to_columns=combination_id_to_columns,
+            set_mode=True,
+        )
+
+    @classmethod
+    def from_membership_csv(cls, filepath_or_buffer, *args, **kwargs):
+        df = pd.read_csv(filepath_or_buffer, **kwargs)
+        return cls.from_membership_data_frame(df, *args, **kwargs)
+
+    @classmethod
     def from_postgres(
         cls,
         conn: psycopg2.extensions.connection,
