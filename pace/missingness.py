@@ -6,6 +6,11 @@ from psycopg2 import sql
 
 from typing import Sequence, Callable, Optional, Any, List
 from .setexpression import Set, SetExpr
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # alias for Set
 class Col(Set):
@@ -88,6 +93,9 @@ class Missingness:
         )
 
         return self._combination_id_to_columns.join(counts)
+
+    def empty_combination(self) -> pd.Series:
+        return ~self._combination_id_to_columns.any(axis=1)
 
     def select_columns(self, selection: Optional[List] = None):
         """Return a new Missingness object for a subset of the columns
@@ -276,6 +284,67 @@ class Missingness:
         return cls.from_data_frame(df)
 
     @classmethod
+    def from_membership_data_frame(
+        cls,
+        df,
+        membership_column="set_membership",
+        membership_separator="|",
+        **kwargs,
+    ):
+        # This constructor is careful not to produce a 'dense'
+        # dataframe, instead making the membership information into a
+        # `frozenset` and grouping by that.
+
+        grouped = pd.DataFrame(
+            df[membership_column]
+            .fillna("")
+            # `"".split("|")` is `[""]`, which has the convenient consequence of
+            # making a "" label for records that aren't in any set which will
+            # not get dropped later.
+            .str.split(membership_separator)
+            .apply(frozenset)
+        ).groupby(membership_column)
+
+        combination_id_to_records = (
+            pd.DataFrame(grouped.ngroup(), columns=["combination_id"])
+            .rename_axis("_record_id")
+            .reset_index()
+            .set_index("combination_id")
+            .sort_index()
+        )
+
+        mship = pd.DataFrame(
+            pd.DataFrame(grouped.indices.keys())
+            .melt(ignore_index=False)["value"]
+            .dropna()
+            .sort_index()
+        )
+        mship["member"] = 1.0
+        mship_pivot = (
+            mship.pivot(columns=["value"])
+            .droplevel(0, axis=1)
+            .drop("", axis=1)  # remove column for the explicitly 'empty' label
+            .rename_axis(None, axis=1)
+            # Prepend "category@" to the label to make the column labels
+            # consistent with the constructor(s) from 'Format 1' csv files
+            .rename(lambda x: "category@" + x, axis=1)
+            .fillna(0.0)
+            .astype(int)
+        )
+        combination_id_to_columns = mship_pivot.rename_axis("combination_id")
+
+        return cls(
+            combination_id_to_records=combination_id_to_records,
+            combination_id_to_columns=combination_id_to_columns,
+            set_mode=True,
+        )
+
+    @classmethod
+    def from_membership_csv(cls, filepath_or_buffer, *args, **kwargs):
+        df = pd.read_csv(filepath_or_buffer, **kwargs)
+        return cls.from_membership_data_frame(df, *args, **kwargs)
+
+    @classmethod
     def from_postgres(
         cls,
         conn: psycopg2.extensions.connection,
@@ -386,43 +455,7 @@ class Missingness:
         )
 
 
-def heatmap_data(m: Missingness):
-    counts = m.count_combinations()
-    return (
-        counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
-    )
-
-
-def value_bar_chart_data(m: Missingness):
-    labels = m.columns()
-    return pd.DataFrame(
-        {"_count": [m.count_matching_records(Col(label)) for label in labels]},
-        index=labels,
-    )
-
-
-def value_count_histogram_data(m: Missingness, bins: int = 11):
-    labels = m.columns()
-    data = pd.DataFrame(
-        {"_count": [m.count_matching_records(Col(label)) for label in labels]},
-        index=labels,
-    )
-    data_subset = data[data["_count"] != 0]
-    _, hist_edges = np.histogram(data_subset, bins=bins - 1)
-    bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins - 1)
-    bin_ids += 1
-    data["_bin_id"] = 1
-    data["_bin_id"].loc[data_subset.index] = bin_ids[:, 0]
-
-    # dict_data is for plotting
-    keys = [x + 1 for x in range(bins)]
-    vals = [data[data["_bin_id"] == x].shape[0] for x in keys]
-    column_data_source = pd.DataFrame({"_bin_id": keys, "_bin_count": vals,})
-    return data, column_data_source, hist_edges
-
-
-def combination_bar_chart_data(m: Missingness):
-    # sort with decreasign order
+def intersection_bar_chart_data(m: Missingness):
     return (
         m.count_combinations()
         .sort_values("_count", ascending=False)
@@ -430,11 +463,12 @@ def combination_bar_chart_data(m: Missingness):
     )
 
 
-def combination_count_histogram_data(m: Missingness, bins: int = 10):
+def intersection_cardinality_histogram_data(m: Missingness, bins: int = 10):
     labels = list(m.count_combinations().index.values)
     data = pd.DataFrame(
         {"_count": m.count_combinations()["_count"]}, index=labels,
     )
+    bins = np.fmin(len(data["_count"].unique()), bins)
     data.index.name = "combination_id"
     _, edges = np.histogram(data["_count"], bins)
     bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
@@ -442,46 +476,43 @@ def combination_count_histogram_data(m: Missingness, bins: int = 10):
     data["_bin_id"] = bin_ids - 1
 
     # dict for plotting
-    bins = [x for x in range(bins)]
-    count = [data[data["_bin_id"] == x].shape[0] for x in bins]
-    column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
-    return data, column_data_source, edges
+    list_bins = [x for x in range(bins)]
+    count = [data[data["_bin_id"] == x].shape[0] for x in list_bins]
+    column_data_source = pd.DataFrame({"_bin": list_bins, "_count": count})
+    return data, column_data_source, edges, bins
 
 
-def combination_length_histogram_data(m: Missingness, bins: int = 10):
+def intersection_degree_histogram_data(m: Missingness, bins: int = 10):
     labels = list(m.combinations().index.values)
     data = pd.DataFrame(
         {"_length": list(m.combinations().sum(axis=1))}, index=labels,
     )
+    bins = np.fmin(len(data["_length"].unique()), bins)
     _, edges = np.histogram(data["_length"], bins)
-    bin_ids = np.fmin(np.digitize(data["_length"], edges), bins)
-    data["_bin_id"] = bin_ids - 1
+    data["_bin_id"] = np.fmin(np.digitize(data["_length"], edges), bins) - 1
 
     # dict for plotting
-    bins = [x for x in range(bins)]
-    count = [data[data["_bin_id"] == x].shape[0] for x in bins]
-    column_data_source = pd.DataFrame({"_bin": bins, "_count": count})
-    return data, column_data_source, edges
+    list_bins = [x for x in range(bins)]
+    count = [data[data["_bin_id"] == x].shape[0] for x in list_bins]
+    column_data_source = pd.DataFrame({"_bin": list_bins, "_count": count})
+    return data, column_data_source, edges, bins
 
 
 def set_bar_chart_data(m: Missingness):
-    empty_set = get_empty_set(m)
-    # concatenate empty set with count for remaining sets
+    empty_set = m.empty_combination()
     labels = m.columns()
     sets = [m.count_matching_records(Col(label)) for label in labels]
-    labels += [" "]
-    sets += [len(empty_set)]
+    labels += ["empty"]
+    sets += [
+        m.count_combinations()[empty_set]["_count"]
+        .reset_index(drop=True)
+        .get(0, 0)
+    ]
     return pd.DataFrame({"_count": sets}, index=labels,)
 
 
 def set_cardinality_histogram_data(m: Missingness, bins: int = 11):
-    # first bin with bin_id 1 is for sets with no members
-    empty_set = get_empty_set(m)
-    labels = m.columns()
-    sets = [m.count_matching_records(Col(label)) for label in labels]
-    labels += [" "]
-    sets += [len(empty_set)]
-    data = pd.DataFrame({"_count": sets}, index=labels,)
+    data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
     _, hist_edges = np.histogram(data_subset, bins=bins - 1)
     bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins - 1)
@@ -497,29 +528,8 @@ def set_cardinality_histogram_data(m: Missingness, bins: int = 11):
 
 
 def intersection_heatmap_data(m: Missingness):
-    # we need combination_id for empty set and cardinality
-    counts = m.count_combinations().copy()  # !!! careful - make copy
-    empty_set = get_empty_set(m)
-    combination = m._combination_id_to_records[
-        m._combination_id_to_records["_record_id"].isin(empty_set)
-    ].index.unique()
-    counts[" "] = 0
-    counts[" "].loc[combination] = 1
-    # return counts
+    counts = m.count_combinations().copy()  # don't modify original df
+    counts["empty"] = m.empty_combination()
     return (
         counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
-
-
-def get_empty_set(m: Missingness):
-    """
-    Returns the indices of the elements that are not member of any set.
-    These elements form the empty set.
-    """
-    labels = m.columns()
-    # identify empty set (elements that are not member of any set)
-    separator = " | "
-    combination_spec = separator.join(f"Col('{label}')" for label in labels)
-    matches = m.matching_records(eval(combination_spec))
-    universe = m.records()
-    return list(np.sort(np.array(universe)[~np.in1d(universe, matches)]))

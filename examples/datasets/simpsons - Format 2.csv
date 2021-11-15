@@ -1,0 +1,25 @@
+element@name,set_membership,attribute@Age
+Lisa,school,8
+Bart,school|male,10
+Homer,duff fan|male|power plant,40
+Marge,blue hair,36
+Maggie,,1
+Barney,duff fan|male,39
+Mr. Burns,evil|male|power plant,90
+Mo,duff fan|male,41
+Ned,male,42
+Milhouse,school|blue hair|male,10
+Grampa,male,85
+Krusty,duff fan|evil|male,46
+Smithers,evil|male|power plant,33
+Ralph,school|male,8
+Sideshow Bob,evil|male,37
+Kent Brockman,male,45
+Fat Tony,evil|male,50
+Jacqueline Bouvier ,blue hair,76
+Patty Bouvier,,45
+Selma Bouvier,,45
+Lenny Leonard,duff fan|male|power plant,38
+Carl Carlson,duff fan|male|power plant,37
+Nelson,school|evil|male,11
+Martin Prince,school|male,10
