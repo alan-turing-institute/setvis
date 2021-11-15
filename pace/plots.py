@@ -42,10 +42,11 @@ class MissingnessPlotBase:
         raise NotImplementedError()
 
 
-class ValueBarChart(MissingnessPlotBase):
+class SetBarChart(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
-
+        self._bar_data = missingness.set_bar_chart_data(data)
         self.source = ColumnDataSource(
             missingness.set_bar_chart_data(data).reset_index()
         )
@@ -58,9 +59,9 @@ class ValueBarChart(MissingnessPlotBase):
         self.tools = ["box_select", "tap", "reset"]
         self.height = 960
         self.width = 960
-        self.title = "Value bar chart"
-        self.xlabel = "Fields"
-        self.ylabel = "Number of missing values"
+        self.title = "Set bar chart" if set_mode else "Value bar chart"
+        self.xlabel = "Set" if set_mode else "Fields"
+        self.ylabel = "Cardinality" if set_mode else "Number of missing values"
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
@@ -68,7 +69,7 @@ class ValueBarChart(MissingnessPlotBase):
             tools=self.tools,
             width=self.width,
             height=self.height,
-            x_range=self._data.columns(),
+            x_range=list(self._bar_data.index,),
         )
         p.vbar(
             x="index", top="_count", width=self.bar_width, source=self.source
@@ -98,15 +99,16 @@ class ValueBarChart(MissingnessPlotBase):
         return col_indices
 
 
-class ValueCountHistogram(MissingnessPlotBase):
+class SetCardinalityHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
         self._bins = 11
         (
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = missingness.value_count_histogram_data(data, self._bins)
+        ) = missingness.set_cardinality_histogram_data(data, self._bins)
         self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
@@ -115,9 +117,19 @@ class ValueCountHistogram(MissingnessPlotBase):
         self.tools = ["box_select", "tap", "reset"]
         self.height = 960
         self.width = 960
-        self.title = "Value count histogram"
-        self.xlabel = "Number of missing values"
-        self.ylabel = "Number of fields"
+        self.title = (
+            "Set cardinality histogram"
+            if set_mode
+            else "Value count histogram"
+        )
+        self.xlabel = (
+            "Cardinality of set" if set_mode else "Number of missing values"
+        )
+        self.ylabel = (
+            "Number of sets with cardinality"
+            if set_mode
+            else "Number of fields"
+        )
         self.linecolor = "white"
 
     def plot(self) -> bokeh.plotting.Figure:
@@ -182,10 +194,11 @@ class ValueCountHistogram(MissingnessPlotBase):
         return dict(zip(keys, vals))
 
 
-class CombinationBarChart(MissingnessPlotBase):
+class IntersectionBarChart(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
-        self._bar_data = missingness.combination_bar_chart_data(data)
+        self._bar_data = missingness.intersection_bar_chart_data(data)
         self.source = ColumnDataSource(self._bar_data)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -197,9 +210,13 @@ class CombinationBarChart(MissingnessPlotBase):
         self.height = 960
         self.width = 960
         self.linecolor = "white"
-        self.title = "Combination bar chart"
-        self.xlabel = "Combinations"
-        self.ylabel = "Number of records"
+        self.title = (
+            "Intersection bar chart" if set_mode else "Combination bar chart"
+        )
+        self.xlabel = "Intersections" if set_mode else "Combinations"
+        self.ylabel = (
+            "Number of intersections" if set_mode else "Number of records"
+        )
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
@@ -246,15 +263,16 @@ class CombinationBarChart(MissingnessPlotBase):
         return bar_indices
 
 
-class CombinationCountHistogram(MissingnessPlotBase):
+class IntersectionCardinalityHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
-        self._bins = 10
         (
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = missingness.combination_count_histogram_data(data, self._bins)
+            self._bins,
+        ) = missingness.intersection_cardinality_histogram_data(data)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -266,9 +284,15 @@ class CombinationCountHistogram(MissingnessPlotBase):
         self.height = 960
         self.width = 960
         self.linecolor = "white"
-        self.title = "Combination count histogram"
-        self.xlabel = "Number of records"
-        self.ylabel = "Number of combinations"
+        self.title = (
+            "Intersection cardinality histogram"
+            if set_mode
+            else "Combination count histogram"
+        )
+        self.xlabel = "Cardinality" if set_mode else "Number of records"
+        self.ylabel = (
+            "Number of intersections" if set_mode else "Number of combinations"
+        )
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
@@ -285,11 +309,10 @@ class CombinationCountHistogram(MissingnessPlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x for x in range(self._bins)]
+        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
-        # fix xaxis ticklabels
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
@@ -312,24 +335,24 @@ class CombinationCountHistogram(MissingnessPlotBase):
         return indices
 
     def _get_xtick_labels(self):
-        key_list = [str(x) for x in range(self._bins)]
-        xtick_labels = dict.fromkeys(key_list)
-        for i in range(self._bins):  # write as list comprehension?
-            left = int(np.ceil(self._hist_edges[i]))
-            right = int(np.floor(self._hist_edges[i + 1]))
-            xtick_labels[str(i)] = f"{left}-{right}"
-        return xtick_labels
+        keys = [str(x - 0.5) for x in range(self._bins)]
+        vals = [
+            f"{int(np.ceil(self._hist_edges[i]))}"
+            for i in range(len(self._hist_edges))
+        ]
+        return dict(zip(keys, vals))
 
 
-class CombinationLengthHistogram(MissingnessPlotBase):
+class IntersectionDegreeHistogram(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
-        self._bins = 10
         (
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = missingness.combination_length_histogram_data(data, self._bins)
+            self._bins,
+        ) = missingness.intersection_degree_histogram_data(data)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -341,9 +364,17 @@ class CombinationLengthHistogram(MissingnessPlotBase):
         self.height = 960
         self.width = 960
         self.linecolor = "white"
-        self.title = "Combination length histogram"
-        self.xlabel = "Combination length"
-        self.ylabel = "Number of combinations"
+        self.title = (
+            "Intersection degree histogram"
+            if set_mode
+            else "Combination length histogram"
+        )
+        self.xlabel = (
+            "Intersection Degree" if set_mode else "Combination length"
+        )
+        self.ylabel = (
+            "Number of intersections" if set_mode else "Number of combinations"
+        )
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
@@ -360,11 +391,10 @@ class CombinationLengthHistogram(MissingnessPlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x for x in range(self._bins)]
+        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
-        # TODO: fix xaxis ticklabels, fix ticks yaxis
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
@@ -387,26 +417,26 @@ class CombinationLengthHistogram(MissingnessPlotBase):
         return indices
 
     def _get_xtick_labels(self):
-        key_list = [str(x) for x in range(self._bins)]
-        xtick_labels = dict.fromkeys(key_list)
-        for i in range(self._bins):  # write as list comprehension?
-            left = int(np.ceil(self._hist_edges[i]))
-            right = int(np.floor(self._hist_edges[i + 1]))
-            xtick_labels[str(i)] = f"{left}-{right}"
-        return xtick_labels
+        keys = [str(x - 0.5) for x in range(self._bins)]
+        vals = [
+            f"{int(np.ceil(self._hist_edges[i]))}"
+            for i in range(len(self._hist_edges))
+        ]
+        return dict(zip(keys, vals))
 
 
-class CombinationHeatmap(MissingnessPlotBase):
+class IntersectionHeatmap(MissingnessPlotBase):
     def __init__(self, data: Missingness, initial_selection=Selection()):
+        set_mode = data._set_mode
         self._data = data
 
-        heatmap_data = missingness.heatmap_data(data)
+        heatmap_data = missingness.intersection_heatmap_data(data)
         heatmap_data["combination_id_str"] = heatmap_data.index.values.astype(
             str
         )
+        heatmap_data = heatmap_data.set_index("combination_id_str")
         heatmap_data_long = pd.melt(
-            heatmap_data.reset_index(),
-            id_vars=["combination_id", "combination_id_str"],
+            heatmap_data.reset_index(), id_vars=["combination_id_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
 
@@ -415,11 +445,13 @@ class CombinationHeatmap(MissingnessPlotBase):
         )
 
         self.x_range = list(heatmap_data)
-        self.y_range = list(heatmap_data["combination_id_str"].values)
+        self.y_range = list(heatmap_data.index.values)
         self.c_max = heatmap_data_long["value"].max()
-
-        self.xlabel = "Fields"
-        self.ylabel = "Combinations"
+        self.title = (
+            "Intersection heatmap" if set_mode else "Combination heatmap"
+        )
+        self.xlabel = "Sets" if set_mode else "Fields"
+        self.ylabel = "Intersections" if set_mode else "Combinations"
 
         self.width = 960
         self.height = 960
@@ -429,7 +461,7 @@ class CombinationHeatmap(MissingnessPlotBase):
 
     def plot(self) -> bokeh.plotting.Figure:
         p = figure(
-            title="Combination heatmap",
+            title=self.title,
             width=self.width,
             height=self.height,
             tools=self.tools,
@@ -536,15 +568,12 @@ class PlotSession:
     # collected.
     _instances = WeakValueDictionary()
 
-    def __init__(self, data, session_file=None, verbose=False):
+    def __init__(self, df, session_file=None, set_mode=False, verbose=False):
         self._verbose = verbose
 
         bokeh.io.output_notebook(hide_banner=True)
-
-        if isinstance(data, pd.DataFrame):
-            m = Missingness.from_data_frame(data)
-        elif isinstance(data, Missingness):
-            m = data
+        self._set_mode = set_mode
+        m = Missingness.from_data_frame(df, set_mode=self._set_mode)
 
         self._plots = {}
 
@@ -640,33 +669,68 @@ class PlotSession:
         if name not in self._active_tabs:
             self._active_tabs[name] = 0
 
-        p1 = self._add_subplot(ValueBarChart, name, "value_bar_chart")
-        tab1 = Panel(child=p1, title="Value bar chart")
+        p1 = self._add_subplot(SetBarChart, name, "set_bar_chart")
+        tab1 = Panel(
+            child=p1,
+            title="Set bar chart" if self._set_mode else "Value bar chart",
+        )
 
-        # p2 = self._add_subplot(
-        #     ValueCountHistogram, name, "value_count_histogram"
-        # )
-        # tab2 = Panel(child=p2, title="Value count histogram")
+        p2 = self._add_subplot(
+            SetCardinalityHistogram, name, "set_cardinality_histogram"
+        )
+        tab2 = Panel(
+            child=p2,
+            title="Set cardinality histogram"
+            if self._set_mode
+            else "Value count histogram",
+        )
 
-        # p3 = self._add_subplot(CombinationHeatmap, name, "combination_heatmap")
-        # tab3 = Panel(child=p3, title="Combination heatmap")
+        p3 = self._add_subplot(
+            IntersectionHeatmap, name, "intersection_heatmap"
+        )
+        tab3 = Panel(
+            child=p3,
+            title="Intersection heatmap"
+            if self._set_mode
+            else "Combination heatmap",
+        )
 
-        # p4 = self._add_subplot(
-        #     CombinationBarChart, name, "combination_bar_chart"
-        # )
-        # tab4 = Panel(child=p4, title="Combination bar chart")
+        p4 = self._add_subplot(
+            IntersectionBarChart, name, "intersection_bar_chart"
+        )
+        tab4 = Panel(
+            child=p4,
+            title="Intersection bar chart"
+            if self._set_mode
+            else "Combination bar chart",
+        )
 
-        # p5 = self._add_subplot(
-        #     CombinationCountHistogram, name, "combination_count_histogram"
-        # )
-        # tab5 = Panel(child=p5, title="Combination count histogram")
+        p5 = self._add_subplot(
+            IntersectionCardinalityHistogram,
+            name,
+            "intersection_cardinality_histogram",
+        )
+        tab5 = Panel(
+            child=p5,
+            title="Intersection cardinality histogram"
+            if self._set_mode
+            else "Combination count histogram",
+        )
 
-        # p6 = self._add_subplot(
-        #     CombinationLengthHistogram, name, "combination_length_histogram"
-        # )
-        # tab6 = Panel(child=p6, title="Combination length histogram")
+        p6 = self._add_subplot(
+            IntersectionDegreeHistogram, name, "intersection_degree_histogram"
+        )
+        tab6 = Panel(
+            child=p6,
+            title="Intersection degree histogram"
+            if self._set_mode
+            else "Combination length histogram",
+        )
 
-        tabs = Tabs(tabs=[tab1], active=self._active_tabs[name],)
+        tabs = Tabs(
+            tabs=[tab1, tab2, tab3, tab4, tab5, tab6],
+            active=self._active_tabs[name],
+        )
         tabs.js_on_change("active", self._active_tab_callback(name))
 
         show(tabs)
