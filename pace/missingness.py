@@ -533,4 +533,3 @@ def intersection_heatmap_data(m: Missingness):
     return (
         counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
-
