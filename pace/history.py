@@ -1,12 +1,12 @@
 import pydantic
 from typing import Optional, List, Dict, Sequence, Union
-from .missingness import Missingness, selection_to_series
+from .membership import Membership, selection_to_series
 
 
 class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
     columns: List = []
     records: List = []
-    combinations: List = []
+    intersections: List = []
 
 
 # Selections specify the items that they exclude, so that a nested
@@ -22,13 +22,13 @@ def iterated_apply(f, x):
         x = f(x)
 
 
-def drop_selection(m: Missingness, exclude: Selection):
+def drop_selection(m: Membership, exclude: Selection):
     # It's important that the pattern selection is made before the
     # column selection, since the pattern indices are reset after a
     # column selection
     return (
         m.drop_records(exclude.records)
-        .drop_combinations(exclude.combinations)
+        .drop_intersections(exclude.intersections)
         .drop_columns(exclude.columns)
     )
 
@@ -41,10 +41,10 @@ def _parse_selections(d):
 class SelectionHistory:
     def __init__(
         self,
-        missingness: Missingness,
+        membership: Membership,
         selections: Optional[Dict[str, SubSelection]] = None,
     ):
-        self._missingness = missingness
+        self._membership = membership
         self._selections = (
             _parse_selections(selections) if selections is not None else {}
         )
@@ -75,8 +75,8 @@ class SelectionHistory:
     def ancestors(self, name):
         return list(iterated_apply(self.parent, name))
 
-    def missingness(self, name: Optional[str] = None):
-        m = self._missingness
+    def membership(self, name: Optional[str] = None):
+        m = self._membership
         for ancestor in reversed(self.ancestors(name)):
             m = drop_selection(m, self._selections[ancestor].exclude)
         return m
@@ -87,8 +87,8 @@ class SelectionHistory:
         base_selection: Optional[str] = None,
         sort=True,
     ):
-        base_records = self.missingness(base_selection).records()
-        selected_records = self.missingness(name).records()
+        base_records = self.membership(base_selection).records()
+        selected_records = self.membership(name).records()
         return selection_to_series(base_records, selected_records, sort)
 
     def dict(self):

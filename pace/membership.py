@@ -29,26 +29,26 @@ def _invert_selection(universe, selection):
 
 
 def selection_to_series(universe, selection, sort=True):
-    result = pd.Series(np.in1d(universe, selection), index=universe,)
+    result = pd.Series(np.in1d(universe, selection), index=universe)
     return result.sort_index() if sort else result
 
 
-class Missingness:
+class Membership:
 
-    _combination_id_to_columns: pd.DataFrame
-    _combination_id_to_records: pd.DataFrame
+    _intersection_id_to_columns: pd.DataFrame
+    _intersection_id_to_records: pd.DataFrame
 
     def __init__(
         self,
-        combination_id_to_columns: pd.DataFrame,
-        combination_id_to_records: pd.DataFrame,
+        intersection_id_to_columns: pd.DataFrame,
+        intersection_id_to_records: pd.DataFrame,
         set_mode: bool = False,
         check: bool = True,
     ):
-        self._combination_id_to_columns = combination_id_to_columns.rename_axis(
-            "combination_id"
+        self._intersection_id_to_columns = intersection_id_to_columns.rename_axis(
+            "intersection_id"
         )
-        self._combination_id_to_records = combination_id_to_records
+        self._intersection_id_to_records = intersection_id_to_records
         self._set_mode = set_mode  # pam
         if check:
             self._check()
@@ -57,98 +57,98 @@ class Missingness:
         """Validate the class data
 
         In particular: Check that the DataFrame
-        '_combination_id_to_records' has a column 'combination_id'
+        '_intersection_id_to_records' has a column 'intersection_id'
         with a foreign key relationship to
-        '_combination_id_to_columns'.
+        '_intersection_id_to_columns'.
 
         """
-        assert self._combination_id_to_records.index.name == "combination_id"
-        assert self._combination_id_to_records.index.isin(
-            self._combination_id_to_columns.index
+        assert self._intersection_id_to_records.index.name == "intersection_id"
+        assert self._intersection_id_to_records.index.isin(
+            self._intersection_id_to_columns.index
         ).all()
 
     def columns(self) -> List[Any]:
-        return list(self._combination_id_to_columns)
+        return list(self._intersection_id_to_columns)
 
-    def combinations(self):
-        return self._combination_id_to_columns
+    def intersections(self):
+        return self._intersection_id_to_columns
 
     def records(self):
-        return self._combination_id_to_records["_record_id"].values
+        return self._intersection_id_to_records["_record_id"].values
 
-    def count_combinations(self) -> pd.DataFrame:
-        """Distinct missingness combinations in the data, and the count of each
+    def count_intersections(self) -> pd.DataFrame:
+        """Distinct set intersections, and the count of each
 
         :param count_col_name: The name of the column in the result
         holding the count data
 
-        :return: A dataframe containing the missingness combinations and
-        the number of times each appears in the dataset
+        :return: A dataframe containing the intersections and the
+        number of times each appears in the dataset
 
         """
         count_col_name = "_count"
 
-        counts = self._combination_id_to_records.index.value_counts().rename(
+        counts = self._intersection_id_to_records.index.value_counts().rename(
             count_col_name
         )
 
-        return self._combination_id_to_columns.join(counts)
+        return self._intersection_id_to_columns.join(counts)
 
-    def empty_combination(self) -> pd.Series:
-        return ~self._combination_id_to_columns.any(axis=1)
+    def empty_intersection(self) -> pd.Series:
+        return ~self._intersection_id_to_columns.any(axis=1)
 
     def select_columns(self, selection: Optional[List] = None):
-        """Return a new Missingness object for a subset of the columns
+        """Return a new Membership object for a subset of the columns
 
-        A new Missingness object is constructed from the given columns
+        A new Membership object is constructed from the given columns
         :param selection: (which must be a subset of columns of the
-        current object).  Combinations that are identical under the
+        current object).  Intersections that are identical under the
         selection are consolidated.
 
         """
         if selection is None:
             return self
 
-        new_groups = self._combination_id_to_columns[selection].groupby(
+        new_groups = self._intersection_id_to_columns[selection].groupby(
             selection, as_index=False
         )
 
-        new_combination_id_to_columns = new_groups.first()
+        new_intersection_id_to_columns = new_groups.first()
 
-        group_mapping = new_groups.ngroup().rename("combination_id")
+        group_mapping = new_groups.ngroup().rename("intersection_id")
 
-        new_combination_id_to_records = self._combination_id_to_records.set_index(
-            self._combination_id_to_records.index.map(group_mapping)
+        new_intersection_id_to_records = self._intersection_id_to_records.set_index(
+            self._intersection_id_to_records.index.map(group_mapping)
         ).sort_index()
 
         return self.__class__(
-            new_combination_id_to_columns,
-            new_combination_id_to_records,
+            new_intersection_id_to_columns,
+            new_intersection_id_to_records,
             check=False,
         )
 
-    def select_combinations(self, selection: Optional[Sequence] = None):
-        """Return a Missingness object with the given subset of combinations
+    def select_intersections(self, selection: Optional[Sequence] = None):
+        """Return a Membership object with the given subset of intersections
 
-        A Missingness object is returned, based on the given combinations
-        in :param selection: (which must be a subset of combinations of
+        A Membership object is returned, based on the given intersections
+        in :param selection: (which must be a subset of intersections of
         the current object).  A selection of None corresponds to every
-        combination being selected, and the original object is returned.
+        intersection being selected, and the original object is returned.
 
         """
         if selection is None:
             return self
 
-        new_combination_id_to_columns = self._combination_id_to_columns.loc[
+        new_intersection_id_to_columns = self._intersection_id_to_columns.loc[
             selection
         ]
-        new_combination_id_to_records = self._combination_id_to_records.loc[
+        new_intersection_id_to_records = self._intersection_id_to_records.loc[
             selection
         ].sort_index()
 
         return self.__class__(
-            new_combination_id_to_columns,
-            new_combination_id_to_records,
+            new_intersection_id_to_columns,
+            new_intersection_id_to_records,
             check=True,
         )
 
@@ -157,35 +157,35 @@ class Missingness:
             return self
 
         # no need to sort_index, since selection is returned in index order
-        new_combination_id_to_records = self._combination_id_to_records[
-            self._combination_id_to_records["_record_id"].isin(selection)
+        new_intersection_id_to_records = self._intersection_id_to_records[
+            self._intersection_id_to_records["_record_id"].isin(selection)
         ]
 
-        # discard unused combination ids, but do not reindex
-        new_combination_id_to_columns = self._combination_id_to_columns.loc[
-            new_combination_id_to_records.index.unique()
+        # discard unused intersection ids, but do not reindex
+        new_intersection_id_to_columns = self._intersection_id_to_columns.loc[
+            new_intersection_id_to_records.index.unique()
         ]
 
         return self.__class__(
-            new_combination_id_to_columns,
-            new_combination_id_to_records,
+            new_intersection_id_to_columns,
+            new_intersection_id_to_records,
             check=True,
         )
 
     def drop_columns(self, selection: Optional[List]):
         return self.select_columns(self.invert_column_selection(selection))
 
-    def drop_combinations(self, selection: Optional[Sequence[int]]):
-        return self.select_combinations(
-            self.invert_combination_selection(selection)
+    def drop_intersections(self, selection: Optional[Sequence[int]]):
+        return self.select_intersections(
+            self.invert_intersection_selection(selection)
         )
 
     def drop_records(self, selection: Optional[Sequence[int]]):
         return self.select_records(self.invert_record_selection(selection))
 
-    def invert_combination_selection(self, selection):
+    def invert_intersection_selection(self, selection):
         return _invert_selection(
-            self._combination_id_to_columns.index.values, selection
+            self._intersection_id_to_columns.index.values, selection
         )
 
     def invert_column_selection(self, selection):
@@ -194,14 +194,14 @@ class Missingness:
     def invert_record_selection(self, selection):
         return _invert_selection(self.records(), selection)
 
-    def _compute_set(self, combination_spec: SetExpr):
-        """Evaluate the SetExpr :combination_spec: for the current instance"""
-        return combination_spec.run_with(
-            self._combination_id_to_columns.__getitem__
+    def _compute_set(self, intersection_spec: SetExpr):
+        """Evaluate the SetExpr :intersection_spec: for the current instance"""
+        return intersection_spec.run_with(
+            self._intersection_id_to_columns.__getitem__
         )
 
-    def matching_combinations(self, combination_spec: SetExpr) -> np.ndarray:
-        matches = self._compute_set(combination_spec)
+    def matching_intersections(self, intersection_spec: SetExpr) -> np.ndarray:
+        matches = self._compute_set(intersection_spec)
         if self._set_mode:
             matches = matches != 0
 
@@ -209,18 +209,19 @@ class Missingness:
         return matches.index[matches].values
         # return matches
 
-    def matching_records(self, combination_spec: SetExpr) -> np.ndarray:
-        """Indicate which records match the given missingness combination
+    def matching_records(self, intersection_spec: SetExpr) -> np.ndarray:
+        """Indicate which records match the given intersection
 
         Return a boolean series, which is True for each index where
-        the data matches the given missingness combination :param combination_spec:
+        the data matches the given intersection :param
+        intersection_spec:
 
         """
-        matching_combination_ids = self.matching_combinations(combination_spec)
+        matching_intersection_ids = self.matching_intersections(intersection_spec)
 
         # np.concatenate needs at least one array, so handle empty case
         # separately
-        if len(matching_combination_ids) == 0:
+        if len(matching_intersection_ids) == 0:
             return np.array([], dtype=np.int64)
         else:
             return np.concatenate(
@@ -229,23 +230,23 @@ class Missingness:
                     # poor when the df has a non-unique index.
                     # Instead, apply loc to each separate index and
                     # concatenate
-                    self._combination_id_to_records.loc[k]
+                    self._intersection_id_to_records.loc[k]
                     .to_numpy()
                     .reshape(-1)
-                    for k in matching_combination_ids
+                    for k in matching_intersection_ids
                 ],
             )
 
-    def count_matching_records(self, combination_spec: SetExpr) -> int:
-        """Equivalent to len(self.matching_records(combination_spec)), but
+    def count_matching_records(self, intersection_spec: SetExpr) -> int:
+        """Equivalent to len(self.matching_records(intersection_spec)), but
         could have a performance benefit
 
         """
-        matching_combination_ids = self.matching_combinations(combination_spec)
+        matching_intersection_ids = self.matching_intersections(intersection_spec)
 
         return sum(
-            len(self._combination_id_to_records.loc[k])
-            for k in matching_combination_ids
+            len(self._intersection_id_to_records.loc[k])
+            for k in matching_intersection_ids
         )
 
     @classmethod
@@ -261,20 +262,20 @@ class Missingness:
         else:
             columns = df.columns
             grouped = is_missing(df).groupby(list(df))
-        combination_id_to_records = (
-            pd.DataFrame(grouped.ngroup(), columns=["combination_id"])
+        intersection_id_to_records = (
+            pd.DataFrame(grouped.ngroup(), columns=["intersection_id"])
             .rename_axis("_record_id")
             .reset_index()
-            .set_index("combination_id")
+            .set_index("intersection_id")
             .sort_index()
         )
-        combination_id_to_columns = pd.DataFrame(
+        intersection_id_to_columns = pd.DataFrame(
             grouped.indices.keys(), columns=columns
         )
 
         return cls(
-            combination_id_to_records=combination_id_to_records,
-            combination_id_to_columns=combination_id_to_columns,
+            intersection_id_to_records=intersection_id_to_records,
+            intersection_id_to_columns=intersection_id_to_columns,
             set_mode=set_mode,
         )
 
@@ -305,11 +306,11 @@ class Missingness:
             .apply(frozenset)
         ).groupby(membership_column)
 
-        combination_id_to_records = (
-            pd.DataFrame(grouped.ngroup(), columns=["combination_id"])
+        intersection_id_to_records = (
+            pd.DataFrame(grouped.ngroup(), columns=["intersection_id"])
             .rename_axis("_record_id")
             .reset_index()
-            .set_index("combination_id")
+            .set_index("intersection_id")
             .sort_index()
         )
 
@@ -331,11 +332,11 @@ class Missingness:
             .fillna(0.0)
             .astype(int)
         )
-        combination_id_to_columns = mship_pivot.rename_axis("combination_id")
+        intersection_id_to_columns = mship_pivot.rename_axis("intersection_id")
 
         return cls(
-            combination_id_to_records=combination_id_to_records,
-            combination_id_to_columns=combination_id_to_columns,
+            intersection_id_to_records=intersection_id_to_records,
+            intersection_id_to_columns=intersection_id_to_columns,
             set_mode=True,
         )
 
@@ -396,18 +397,19 @@ class Missingness:
                 )
 
                 # Make another temporary table where each record is
-                # labelled with a number identifying its missingness
-                # combination
+                # labelled with a number identifying its distinct
+                # intersections (missingness combinations in this
+                # context)
                 curs.execute(
                     sql.SQL(
                         """
-                        CREATE TEMPORARY TABLE temp_combinations
+                        CREATE TEMPORARY TABLE temp_intersections
                         ON COMMIT DROP
                         AS
                           SELECT ROW_NUMBER() OVER (
                             ORDER BY ({columns_excl_key})
                           ) - 1
-                          AS combination_id, *
+                          AS intersection_id, *
                           FROM (
                             SELECT {columns_excl_key}
                             FROM temp_missing
@@ -421,55 +423,55 @@ class Missingness:
                     )
                 )
 
-                # First query: All missingness combinations
+                # First query: All intersections
                 query1 = sql.SQL(
                     """
-                    SELECT * FROM temp_combinations
-                    ORDER BY combination_id
+                    SELECT * FROM temp_intersections
+                    ORDER BY intersection_id
                     """
                 )
 
-                combination_id_to_columns = pd.read_sql_query(
-                    query1, conn, index_col="combination_id",
+                intersection_id_to_columns = pd.read_sql_query(
+                    query1, conn, index_col="intersection_id",
                 )
 
-                # Second query: combination id to record id
+                # Second query: intersection id to record id
                 query2 = sql.SQL(
                     """
                     SELECT
-                      combination_id, {key} AS _record_id
+                      intersection_id, {key} AS _record_id
                     FROM
                       temp_missing
                     NATURAL JOIN
-                      temp_combinations
+                      temp_intersections
                     """
                 ).format(key=sql.Identifier(key))
 
-                combination_id_to_records = pd.read_sql_query(
-                    query2, conn, index_col="combination_id",
+                intersection_id_to_records = pd.read_sql_query(
+                    query2, conn, index_col="intersection_id",
                 ).sort_index()
 
         return cls(
-            combination_id_to_records=combination_id_to_records,
-            combination_id_to_columns=combination_id_to_columns,
+            intersection_id_to_records=intersection_id_to_records,
+            intersection_id_to_columns=intersection_id_to_columns,
         )
 
 
-def intersection_bar_chart_data(m: Missingness):
+def intersection_bar_chart_data(m: Membership):
     return (
-        m.count_combinations()
+        m.count_intersections()
         .sort_values("_count", ascending=False)
         .reset_index()
     )
 
 
-def intersection_cardinality_histogram_data(m: Missingness, bins: int = 10):
-    labels = list(m.count_combinations().index.values)
+def intersection_cardinality_histogram_data(m: Membership, bins: int = 10):
+    labels = list(m.count_intersections().index.values)
     data = pd.DataFrame(
-        {"_count": m.count_combinations()["_count"]}, index=labels,
+        {"_count": m.count_intersections()["_count"]}, index=labels,
     )
     bins = np.fmin(len(data["_count"].unique()), bins)
-    data.index.name = "combination_id"
+    data.index.name = "intersection_id"
     _, edges = np.histogram(data["_count"], bins)
     bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
 
@@ -482,10 +484,10 @@ def intersection_cardinality_histogram_data(m: Missingness, bins: int = 10):
     return data, column_data_source, edges, bins
 
 
-def intersection_degree_histogram_data(m: Missingness, bins: int = 10):
-    labels = list(m.combinations().index.values)
+def intersection_degree_histogram_data(m: Membership, bins: int = 10):
+    labels = list(m.intersections().index.values)
     data = pd.DataFrame(
-        {"_length": list(m.combinations().sum(axis=1))}, index=labels,
+        {"_length": list(m.intersections().sum(axis=1))}, index=labels,
     )
     bins = np.fmin(len(data["_length"].unique()), bins)
     _, edges = np.histogram(data["_length"], bins)
@@ -498,20 +500,20 @@ def intersection_degree_histogram_data(m: Missingness, bins: int = 10):
     return data, column_data_source, edges, bins
 
 
-def set_bar_chart_data(m: Missingness):
-    empty_set = m.empty_combination()
+def set_bar_chart_data(m: Membership):
+    empty_set = m.empty_intersection()
     labels = m.columns()
     sets = [m.count_matching_records(Col(label)) for label in labels]
     labels += ["empty"]
     sets += [
-        m.count_combinations()[empty_set]["_count"]
+        m.count_intersections()[empty_set]["_count"]
         .reset_index(drop=True)
         .get(0, 0)
     ]
     return pd.DataFrame({"_count": sets}, index=labels,)
 
 
-def set_cardinality_histogram_data(m: Missingness, bins: int = 11):
+def set_cardinality_histogram_data(m: Membership, bins: int = 11):
     data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
     _, hist_edges = np.histogram(data_subset, bins=bins - 1)
@@ -527,9 +529,9 @@ def set_cardinality_histogram_data(m: Missingness, bins: int = 11):
     return data, column_data_source, hist_edges
 
 
-def intersection_heatmap_data(m: Missingness):
-    counts = m.count_combinations().copy()  # don't modify original df
-    counts["empty"] = m.empty_combination()
+def intersection_heatmap_data(m: Membership):
+    counts = m.count_intersections().copy()  # don't modify original df
+    counts["empty"] = m.empty_intersection()
     return (
         counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
