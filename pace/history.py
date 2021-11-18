@@ -1,34 +1,103 @@
 import pydantic
-from typing import Optional, List, Dict, Sequence, Union
+from typing import Optional, List, Dict, Sequence, Union, Callable, Any
 from .membership import Membership, selection_to_series
 
 
 class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
-    """The Selection class"""
-    columns: List = []
-    records: List = []
-    intersections: List = []
+    """A collection to hold data describing a selection of items in a
+    ``Membership`` object
+
+    This class is used as a convenient container for lists of records
+    identifiers, intersection identifiers and column names to be
+    considered by a method -- it is up to the particular method how
+    these are interpreted, but generally as a "selection" of items to
+    include (or exclude) from processing.
+
+    Since columns, record IDs, and intersection IDs are specific to a
+    ``Membership`` object, a Selection should always be used to refer
+    to a selection of items from the same object, although no
+    reference is kept to it.
+
+    Specifying ``None`` for any of the attributes is intended to be
+    equivalent to specifying a list of all values of that attribute in
+    the related ``Membership`` object.
+
+    Attributes
+    ----------
+    columns : Optional[List]
+        The included column names (may be any value returned by
+        ``Membership.columns()``, which will generally be the same as
+        in the underlying data source)
+    records : Optional[List]
+        The included record IDs (may be any value in
+        ``Membership.columns()["_record_id"]``)
+    intersections : Optional[List]
+        The included intersection IDs (may be any value in
+        ``Membership.intersections().index``)
+
+    """
+
+    columns: Optional[List] = []
+    records: Optional[List] = []
+    intersections: Optional[List] = []
 
 
-# Selections specify the items that they exclude, so that a nested
-# selection can be stored efficiently
 class SubSelection(pydantic.BaseModel, extra="forbid"):
-    """The SubSelection class"""
+    """A selection relative to a named parent selection
+
+    It is used internally by ``SelectionHistory``, and should not be
+    needed in user code.
+
+    This is intended to represent a selection that is the same as the
+    one named `parent` (extrinsic to this class), but with the
+    selection `exclude` removed by ``drop_selection``.
+
+    Selections specify the items that they exclude, rather than
+    include, so that nested selections can be stored efficiently.
+
+    """
+
     parent: Optional[str] = None
     exclude: Selection = Selection()
 
 
-def iterated_apply(f, x):
+def iterated_apply(f: Callable, x: Any):
+    """Generator of repeated function applications
+
+    The function `f` must be callable with a single argument.  This is
+    repeatedly applied to its own output, ``yield``\ ing the result
+    each time until it returns ``None``. The initial result is
+    `x`. This generates the sequence
+
+        x, f(x), f(f(x)), ... , f( ... f(x) ...)
+
+    which either does not terminate, or terminates when one more
+    application of `f` would be ``None``.
+
+    """
     while x is not None:
         yield x
         x = f(x)
 
 
-def drop_selection(m: Membership, exclude: Selection):
-    """The drop_selection function"""
-    # It's important that the pattern selection is made before the
-    # column selection, since the pattern indices are reset after a
-    # column selection
+def drop_selection(m: Membership, exclude: Selection) -> Membership:
+    """Remove records and columns from a ``Membership`` object
+
+    Returns a new membership object the same as `m` but with:
+
+    - records with the given record IDs (`exclude.records`) removed
+    - all records with the given intersection IDs (`exclude.intersections`) removed
+    - columns with the given column names (`exclude.columns`) dropped
+
+    Returns
+    -------
+    Membership
+        A membership object, as described
+    """
+
+    # It is important that the intersections are dropped before the
+    # columns, since the intersection IDs are reset after a column
+    # selection
     return (
         m.drop_records(exclude.records)
         .drop_intersections(exclude.intersections)
