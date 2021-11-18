@@ -16,8 +16,8 @@ from IPython.display import Javascript, display
 from ipywidgets import widgets
 from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
-from pace.missingness import Missingness
-import pace.missingness as missingness
+from pace.membership import Membership
+import pace.membership as membership
 from pace.history import SelectionHistory, Selection
 
 
@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class MissingnessPlotBase:
+class PlotBase:
     def __init__(
-        self, data: Missingness, initial_selection: Selection = Selection()
+        self, data: Membership, initial_selection: Selection = Selection()
     ):
         raise NotImplementedError()
 
@@ -42,13 +42,13 @@ class MissingnessPlotBase:
         raise NotImplementedError()
 
 
-class SetBarChart(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class SetBarChart(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = missingness.set_bar_chart_data(data)
+        self._bar_data = membership.set_bar_chart_data(data)
         self.source = ColumnDataSource(
-            missingness.set_bar_chart_data(data).reset_index()
+            membership.set_bar_chart_data(data).reset_index()
         )
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -99,8 +99,8 @@ class SetBarChart(MissingnessPlotBase):
         return col_indices
 
 
-class SetCardinalityHistogram(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class SetCardinalityHistogram(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
         self._bins = 11
@@ -108,7 +108,7 @@ class SetCardinalityHistogram(MissingnessPlotBase):
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = missingness.set_cardinality_histogram_data(data, self._bins)
+        ) = membership.set_cardinality_histogram_data(data, self._bins)
         self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
@@ -194,11 +194,11 @@ class SetCardinalityHistogram(MissingnessPlotBase):
         return dict(zip(keys, vals))
 
 
-class IntersectionBarChart(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class IntersectionBarChart(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = missingness.intersection_bar_chart_data(data)
+        self._bar_data = membership.intersection_bar_chart_data(data)
         self.source = ColumnDataSource(self._bar_data)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -241,30 +241,30 @@ class IntersectionBarChart(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        include = list(self._bar_data["combination_id"].iloc[indices])
-        exclude = self._data.invert_combination_selection(include)
-        return Selection(combinations=exclude)
+        include = list(self._bar_data["intersection_id"].iloc[indices])
+        exclude = self._data.invert_intersection_selection(include)
+        return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        combination_ids_tuple = np.where(
+        intersection_ids_tuple = np.where(
             np.in1d(
-                self._data.combinations().index,
-                selection.combinations,
+                self._data.intersections().index,
+                selection.intersections,
                 invert=True,
             )
         )
-        combination_ids = combination_ids_tuple[0]
+        intersection_ids = intersection_ids_tuple[0]
 
         bar_indices = list(
             self._bar_data[
-                self._bar_data["combination_id"].isin(combination_ids)
+                self._bar_data["intersection_id"].isin(intersection_ids)
             ].index
         )
         return bar_indices
 
 
-class IntersectionCardinalityHistogram(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class IntersectionCardinalityHistogram(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
         (
@@ -272,7 +272,7 @@ class IntersectionCardinalityHistogram(MissingnessPlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = missingness.intersection_cardinality_histogram_data(data)
+        ) = membership.intersection_cardinality_histogram_data(data)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -319,19 +319,19 @@ class IntersectionCardinalityHistogram(MissingnessPlotBase):
         include = list(
             self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
         )
-        exclude = self._data.invert_combination_selection(include)
-        return Selection(combinations=exclude)
+        exclude = self._data.invert_intersection_selection(include)
+        return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        combination_ids_tuple = np.where(
+        intersection_ids_tuple = np.where(
             np.in1d(
-                self._data.combinations().index,
-                selection.combinations,
+                self._data.intersections().index,
+                selection.intersections,
                 invert=True,
             )
         )
-        combination_ids = combination_ids_tuple[0]
-        indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
+        intersection_ids = intersection_ids_tuple[0]
+        indices = list(self._hist_data["_bin_id"].iloc[intersection_ids])
         return indices
 
     def _get_xtick_labels(self):
@@ -343,8 +343,8 @@ class IntersectionCardinalityHistogram(MissingnessPlotBase):
         return dict(zip(keys, vals))
 
 
-class IntersectionDegreeHistogram(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class IntersectionDegreeHistogram(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
         (
@@ -352,7 +352,7 @@ class IntersectionDegreeHistogram(MissingnessPlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = missingness.intersection_degree_histogram_data(data)
+        ) = membership.intersection_degree_histogram_data(data)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -401,19 +401,19 @@ class IntersectionDegreeHistogram(MissingnessPlotBase):
         include = list(
             self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
         )
-        exclude = self._data.invert_combination_selection(include)
-        return Selection(combinations=exclude)
+        exclude = self._data.invert_intersection_selection(include)
+        return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        combination_ids_tuple = np.where(
+        intersection_ids_tuple = np.where(
             np.in1d(
-                self._data.combinations().index,
-                selection.combinations,
+                self._data.intersections().index,
+                selection.intersections,
                 invert=True,
             )
         )
-        combination_ids = combination_ids_tuple[0]
-        indices = list(self._hist_data["_bin_id"].iloc[combination_ids])
+        intersection_ids = intersection_ids_tuple[0]
+        indices = list(self._hist_data["_bin_id"].iloc[intersection_ids])
         return indices
 
     def _get_xtick_labels(self):
@@ -425,18 +425,18 @@ class IntersectionDegreeHistogram(MissingnessPlotBase):
         return dict(zip(keys, vals))
 
 
-class IntersectionHeatmap(MissingnessPlotBase):
-    def __init__(self, data: Missingness, initial_selection=Selection()):
+class IntersectionHeatmap(PlotBase):
+    def __init__(self, data: Membership, initial_selection=Selection()):
         set_mode = data._set_mode
         self._data = data
 
-        heatmap_data = missingness.intersection_heatmap_data(data)
-        heatmap_data["combination_id_str"] = heatmap_data.index.values.astype(
+        heatmap_data = membership.intersection_heatmap_data(data)
+        heatmap_data["intersection_id_str"] = heatmap_data.index.values.astype(
             str
         )
-        heatmap_data = heatmap_data.set_index("combination_id_str")
+        heatmap_data = heatmap_data.set_index("intersection_id_str")
         heatmap_data_long = pd.melt(
-            heatmap_data.reset_index(), id_vars=["combination_id_str"],
+            heatmap_data.reset_index(), id_vars=["intersection_id_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
 
@@ -479,7 +479,7 @@ class IntersectionHeatmap(MissingnessPlotBase):
             low_color="#00000000",
         )
         p.rect(
-            y="combination_id_str",
+            y="intersection_id_str",
             x="variable",
             source=self.source,
             width=1.0,
@@ -500,30 +500,30 @@ class IntersectionHeatmap(MissingnessPlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        n_combinations = len(self._data.combinations())
-        combination_id = self._data.combinations().index.values
-        include = list({combination_id[i % n_combinations] for i in indices})
-        exclude = self._data.invert_combination_selection(include)
+        n_intersections = len(self._data.intersections())
+        intersection_id = self._data.intersections().index.values
+        include = list({intersection_id[i % n_intersections] for i in indices})
+        exclude = self._data.invert_intersection_selection(include)
 
-        return Selection(combinations=exclude)
+        return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
         n_columns = len(self._data.columns())
-        n_combinations = len(self._data.combinations())
+        n_intersections = len(self._data.intersections())
 
-        combination_ids_tuple = np.where(
+        intersection_ids_tuple = np.where(
             np.in1d(
-                self._data.combinations().index,
-                selection.combinations,
+                self._data.intersections().index,
+                selection.intersections,
                 invert=True,
             )
         )
-        combination_ids = combination_ids_tuple[0]
+        intersection_ids = intersection_ids_tuple[0]
 
         box_indices = [
-            j * n_combinations + i
+            j * n_intersections + i
             for j in range(n_columns)
-            for i in combination_ids
+            for i in intersection_ids
         ]
 
         return box_indices
@@ -543,17 +543,17 @@ class PlotSession:
     # add_plot
     _selection_history: SelectionHistory
 
-    # A dictionary from (name, tab_name) to a MissingnessPlotBase
-    # object. Here 'name' is the user provided name of the selection
-    # being plotted (it is also a key of _selection_history) -- this
-    # identifies a particular group of Tabs -- and 'tab_name' is the
-    # name of a particular tab (one of "value_bar_chart",
-    # "combination_heatmap", ...)
+    # A dictionary from (name, tab_name) to a PlotBase object. Here
+    # 'name' is the user provided name of the selection being plotted
+    # (it is also a key of _selection_history) -- this identifies a
+    # particular group of Tabs -- and 'tab_name' is the name of a
+    # particular tab (one of "value_bar_chart", "combination_heatmap",
+    # ...)
     #
     # The Bokeh plot object (produced by calling .plot()) is not
     # stored -- this would not be particularly useful anyway, since it
     # is not the object visible in the notebook!
-    _plots: Dict[Tuple[Any, Any], MissingnessPlotBase]
+    _plots: Dict[Tuple[Any, Any], PlotBase]
 
     # For each plot, an integer representing the tab that should be
     # visible (used for saving/loading sessions)
@@ -573,7 +573,7 @@ class PlotSession:
 
         bokeh.io.output_notebook(hide_banner=True)
         self._set_mode = set_mode
-        m = Missingness.from_data_frame(df, set_mode=self._set_mode)
+        m = Membership.from_data_frame(df, set_mode=self._set_mode)
 
         self._plots = {}
 
@@ -647,7 +647,7 @@ class PlotSession:
     def _add_subplot(self, plotter_cls, name, tabname):
         parent = self._selection_history.parent(name)
 
-        m = self._selection_history.missingness(parent)
+        m = self._selection_history.membership(parent)
         selection = self._selection_history[name]
 
         plotter = plotter_cls(m, initial_selection=selection)
@@ -749,18 +749,18 @@ class PlotSession:
         name,
         based_on=None,
         columns=None,
-        combinations=None,
+        intersections=None,
         records=None,
         invert=False,
     ):
         if not invert:
-            parent = self._selection_history.missingness(based_on)
+            parent = self._selection_history.membership(based_on)
             columns = parent.invert_column_selection(columns)
-            combinations = parent.invert_combination_selection(combinations)
+            intersections = parent.invert_intersection_selection(intersections)
             records = parent.invert_record_selection(records)
 
         selection = Selection(
-            columns=columns, combinations=combinations, records=records
+            columns=columns, intersections=intersections, records=records
         )
 
         self._selection_history.new_selection(name, based_on)
@@ -769,8 +769,8 @@ class PlotSession:
     def selected_records(self, name=None, base_selection=None):
         return self._selection_history.selected_records(name, base_selection)
 
-    def missingness(self, name=None):
-        return self._selection_history.missingness(name)
+    def membership(self, name=None):
+        return self._selection_history.membership(name)
 
     def dict(self):
         """Returns a json-serializable dict representing the session
@@ -779,7 +779,7 @@ class PlotSession:
           - the plot selections (contained in _selection_history)
           - the active (currently-selected) tab in each Bokeh 'Tabs' layout
 
-        It does not include any of the missingness data itself
+        It does not include any of the membership data itself
 
         This is used by .save() to save the session state to a file.
         """

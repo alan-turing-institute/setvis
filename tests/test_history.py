@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from pandas import NA
-from pace.missingness import Missingness
+from pace.membership import Membership
 from pace.history import SelectionHistory, Selection
 
 
@@ -17,29 +17,29 @@ def example_df():
 
 
 def test_selection_history():
-    m = Missingness.from_data_frame(example_df())
+    m = Membership.from_data_frame(example_df())
     h = SelectionHistory(m)
 
     h.new_selection("a")
     h["a"] = Selection(columns=["a"])
 
-    assert h.missingness("a").columns() == ["c", "b"]
-    assert len(h.missingness("a").combinations()) == 3
+    assert h.membership("a").columns() == ["c", "b"]
+    assert len(h.membership("a").intersections()) == 3
 
     h.new_selection("b", "a")
-    h["b"] = Selection(combinations=[0, 1])
+    h["b"] = Selection(intersections=[0, 1])
 
-    m_b = h.missingness("b")
+    m_b = h.membership("b")
 
     # only one pattern remaining
-    assert len(m_b.combinations()) == 1
+    assert len(m_b.intersections()) == 1
 
     # three records left - those with the final pattern in sorted
     # order, '(True, True)'
     assert list(np.sort(m_b.records())) == [1, 3, 4]
 
-    # original missingness - check unchanged
-    m_orig = h.missingness()
+    # original membership - check unchanged
+    m_orig = h.membership()
     assert m_orig.columns() == ["a", "c", "b"]
     assert (np.sort(m_orig.records()) == np.arange(7)).all()
-    assert (m_orig.combinations().index.values == np.arange(4)).all()
+    assert (m_orig.intersections().index.values == np.arange(4)).all()

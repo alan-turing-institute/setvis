@@ -5,7 +5,7 @@
    "exclude": {
     "columns": [],
     "records": [],
-    "combinations": []
+    "intersections": []
    }
   },
   "combinations": {
@@ -13,7 +13,7 @@
    "exclude": {
     "columns": [],
     "records": [],
-    "combinations": [
+    "intersections": [
      0,
      1,
      2,
@@ -32,7 +32,7 @@
    "exclude": {
     "columns": [],
     "records": [],
-    "combinations": [
+    "intersections": [
      8,
      10,
      11,
@@ -45,7 +45,7 @@
  },
  "active_tabs": {
   "all data": 0,
-  "combinations": 1,
-  "gaps": 1
+  "combinations": 2,
+  "gaps": 2
  }
 }
