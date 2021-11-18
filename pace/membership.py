@@ -34,7 +34,8 @@ def selection_to_series(universe, selection, sort=True):
 
 
 class Membership:
-
+    """Membership"""
+    
     _intersection_id_to_columns: pd.DataFrame
     _intersection_id_to_records: pd.DataFrame
 
@@ -514,6 +515,7 @@ def set_bar_chart_data(m: Membership):
 
 
 def set_cardinality_histogram_data(m: Membership, bins: int = 11):
+    """Histogram data"""
     data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
     _, hist_edges = np.histogram(data_subset, bins=bins - 1)

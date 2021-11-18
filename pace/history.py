@@ -4,6 +4,7 @@ from .membership import Membership, selection_to_series
 
 
 class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
+    """The Selection class"""
     columns: List = []
     records: List = []
     intersections: List = []
@@ -12,6 +13,7 @@ class Selection(pydantic.BaseModel, frozen=True, extra="forbid"):
 # Selections specify the items that they exclude, so that a nested
 # selection can be stored efficiently
 class SubSelection(pydantic.BaseModel, extra="forbid"):
+    """The SubSelection class"""
     parent: Optional[str] = None
     exclude: Selection = Selection()
 
@@ -23,6 +25,7 @@ def iterated_apply(f, x):
 
 
 def drop_selection(m: Membership, exclude: Selection):
+    """The drop_selection function"""
     # It's important that the pattern selection is made before the
     # column selection, since the pattern indices are reset after a
     # column selection
@@ -39,6 +42,8 @@ def _parse_selections(d):
 
 
 class SelectionHistory:
+    """The SelectionHistory class"""
+
     def __init__(
         self,
         membership: Membership,
