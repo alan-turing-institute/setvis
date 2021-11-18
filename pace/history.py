@@ -66,7 +66,7 @@ def iterated_apply(f: Callable, x: Any):
 
     The function `f` must be callable with a single argument.  This is
     repeatedly applied to its own output, ``yield``\ ing the result
-    each time until it returns ``None``. The initial result is
+    each time until `f` returns ``None``. The initial result is
     `x`. This generates the sequence
 
         x, f(x), f(f(x)), ... , f( ... f(x) ...)
@@ -88,6 +88,13 @@ def drop_selection(m: Membership, exclude: Selection) -> Membership:
     - records with the given record IDs (`exclude.records`) removed
     - all records with the given intersection IDs (`exclude.intersections`) removed
     - columns with the given column names (`exclude.columns`) dropped
+
+    Parameters
+    ----------
+    m : Membership
+        The initial ``Membership`` object
+    exclude : Selection
+        The items to exclude
 
     Returns
     -------
