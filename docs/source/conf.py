@@ -30,6 +30,7 @@ author = 'pwochner, ots22, raruddle'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
     "nbsphinx",
 ]
 
