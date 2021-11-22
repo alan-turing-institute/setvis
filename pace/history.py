@@ -118,13 +118,41 @@ def _parse_selections(d):
 
 
 class SelectionHistory:
-    """The SelectionHistory class"""
+    """History of nested selections made from a Membership class
+
+    Selections are identified by a name provided when they are
+    created.  Each named selection has:
+
+    * a named parent on which the selection is based;
+    * a list of items to exclude from the parent.
+
+    These named selections form a tree.  The root of the tree is the
+    initial ``Membership`` instance, passed to the constructor as
+    `membership`, and may be referred to be the special name,
+    ``None``.
+
+    An initial tree of selections may be specified in the constructor
+    by passing a dictionary of names to ``SubSelection`` instances as
+    `selections`.
+
+    """
 
     def __init__(
         self,
         membership: Membership,
         selections: Optional[Dict[str, SubSelection]] = None,
     ):
+        """Initialize selection history
+
+        Parameters
+        ----------
+        membership : Membership
+            The initial ``Membership`` object
+
+        selections : Optional[Dict[str, SubSelection]] = None
+            Optionally, a dictionary containing the selection history
+        
+        """
         self._membership = membership
         self._selections = (
             _parse_selections(selections) if selections is not None else {}
@@ -141,22 +169,78 @@ class SelectionHistory:
             self._selections[name] = SubSelection(parent=base_selection)
 
     def __getitem__(self, name):
+        """Return the ``Selection`` associated with a name
+
+        This contains the items to **exclude** from the *parent* of
+        the named selection.
+        
+        Parameters
+        ----------
+        name : str
+            The name of the selection to return
+
+        See also
+        -------
+        parent : The parent of a named selection
+
+        """
         return self._selections[name].exclude
 
-    # Can't straightforwardly provide an interface specifying what
-    # should be included in the selection (rather than excluded from
-    # it), since this would mean calculating the parent's selection --
-    # this is left to the caller
+
     def __setitem__(self, name, exclude: Optional[Selection]):
+        """Set the ``Selection`` associated with `name` to `exclude`.
+
+        This mutates the SelectionHistory instance.
+
+        The selection is interpreted as the items to exclude from
+        `name`\ s parent.
+
+        Parameters
+        ----------
+        name : str
+           The name of the selection to mutate
+        exclude : Optional[Selection]
+           The new selection to use for the items to exclude from
+           `name`\ 's parent.  If ``None``, the entire parent
+           selection is kept.
+
+        Note
+        ----
+        We do not provide an interface specifying what should be
+        included in the selection (rather than excluded from it),
+        since this would mean calculating the parent's selection --
+        this is left to the caller.
+
+        """
+        
         self._selections[name].exclude = exclude
 
     def parent(self, name: str):
+        """Return the parent of the named selection
+        """
+
         return self._selections[name].parent
 
     def ancestors(self, name):
+        """Return all ancestors of the named selection
+        
+        ``ancestors`` is the transitive closure of ``parent``
+        """
+        
         return list(iterated_apply(self.parent, name))
 
     def membership(self, name: Optional[str] = None):
+        """
+        Return the membership instance associated with 
+        
+        This is constructed on the fly.
+
+        Parameters
+        ----------
+        name : Optional[str]
+            The name of the selection for which to construct the ``Membership`` object.
+
+        """
         m = self._membership
         for ancestor in reversed(self.ancestors(name)):
             m = drop_selection(m, self._selections[ancestor].exclude)
