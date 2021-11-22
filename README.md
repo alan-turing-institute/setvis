@@ -57,3 +57,7 @@ If the commands above succeed, it should be possible to run the notebooks in `no
 ```
 jupyter notebook notebooks
 ```
+
+## Acknowledgements
+
+The development of the PACE software was supported by funding from the Engineering and Physical Sciences Research Council (EP/N013980/1; EP/K503836/1) and the Alan Turing Institute (R-LEE-005 and a fellowship awarded to R.A. Ruddle).
