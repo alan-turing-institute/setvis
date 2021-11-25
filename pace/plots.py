@@ -8,6 +8,7 @@ from bokeh.transform import transform, linear_cmap
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
+import bokeh.server
 import pandas as pd
 import numpy as np
 import logging
@@ -57,7 +58,7 @@ class SetBarChart(PlotBase):
         )
 
         self.bar_width = 0.5
-        self.tools = ["box_select", "tap", "reset"]
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.height = 960
         self.width = 960
         self.title = "Set bar chart" if set_mode else "Value bar chart"
@@ -587,12 +588,19 @@ class PlotSession:
 
         return p
 
-    def add_plot(self, name, based_on=None):
-        ## Since this function starts a Bokeh server, stop various INFO
-        ## messages being displayed in the notebook
+    def add_plot(
+        self,
+        name,
+        based_on=None,
+        notebook=True,
+        open_browser_tab=False,
+        html_display_link=True,
+    ):
+        ## Since this function starts a Bokeh server, stop various
+        ## INFO and WARN messages being displayed in the notebook
         if not self._verbose:
             logging.getLogger("bokeh.server").setLevel(logging.WARN)
-            logging.getLogger("tornado").setLevel(logging.WARN)
+            logging.getLogger("tornado").setLevel(logging.ERROR)
 
         self._selection_history.new_selection(name, based_on)
 
@@ -672,8 +680,7 @@ class PlotSession:
             tabs.on_change("active", active_tab_callback)
 
             doc.add_root(tabs)
-
-        show(plot_app)
+            doc.title = "PACE: " + name
 
         if self._verbose:
             logging.info(
@@ -683,6 +690,32 @@ class PlotSession:
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
     # ********"""
             )
+
+        if notebook:
+            show(plot_app)
+        else:
+            server = bokeh.server.server.Server({"/": plot_app}, port=0)
+            server.start()
+            from IPython.core.display import display, HTML
+
+            if open_browser_tab:
+                server.show("/")
+
+            if html_display_link:
+                display(
+                    HTML(
+                        f"Plot available at <a href='http://localhost:{server.port}'"
+                        f"target='_blank' rel='noopener noreferrer'>"
+                        f"http://localhost:{server.port}</a> "
+                        + (
+                            " &mdash; opened in a new browser tab"
+                            if open_browser_tab
+                            else ""
+                        )
+                    )
+                )
+
+            return server
 
     def add_selection(
         self,
