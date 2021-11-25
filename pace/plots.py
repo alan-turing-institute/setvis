@@ -5,7 +5,8 @@ from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS
 from bokeh.palettes import Oranges256
 from bokeh.transform import transform, linear_cmap
-from bokeh.models.widgets import Panel, Tabs  # not sure if needed
+from bokeh.models.widgets import Panel, Tabs
+from bokeh.events import SelectionGeometry
 import bokeh.io
 import pandas as pd
 import numpy as np
@@ -543,39 +544,17 @@ class PlotSession:
     # add_plot
     _selection_history: SelectionHistory
 
-    # A dictionary from (name, tab_name) to a PlotBase object. Here
-    # 'name' is the user provided name of the selection being plotted
-    # (it is also a key of _selection_history) -- this identifies a
-    # particular group of Tabs -- and 'tab_name' is the name of a
-    # particular tab (one of "value_bar_chart", "combination_heatmap",
-    # ...)
-    #
-    # The Bokeh plot object (produced by calling .plot()) is not
-    # stored -- this would not be particularly useful anyway, since it
-    # is not the object visible in the notebook!
-    _plots: Dict[Tuple[Any, Any], PlotBase]
-
     # For each plot, an integer representing the tab that should be
     # visible (used for saving/loading sessions)
     _active_tabs: Dict[Any, int]
 
-    # A class-member dictionary holding PlotSession objects, keyed
-    # by their id().  This allows the JavaScript callback (that in
-    # turn runs code in the IPython kernel) to look up the caller. The
-    # Bokeh plot selection can then be passed to a method of the
-    # corresponding object.  Uses WeakValueDictionary so that the
-    # reference here does not prevent the object being garbage
-    # collected.
-    _instances = WeakValueDictionary()
-
     def __init__(self, df, session_file=None, set_mode=False, verbose=False):
         self._verbose = verbose
+        self._set_mode = set_mode
 
         bokeh.io.output_notebook(hide_banner=True)
-        self._set_mode = set_mode
-        m = Membership.from_data_frame(df, set_mode=self._set_mode)
 
-        self._plots = {}
+        m = Membership.from_data_frame(df, set_mode=self._set_mode)
 
         if session_file is None:
             self._selection_history = SelectionHistory(m)
@@ -590,60 +569,6 @@ class PlotSession:
             )
             self._active_tabs = j["active_tabs"]
 
-        PlotSession._instances[id(self)] = self
-
-    def _selection_callback(self, source, name, tabname):
-        """Return a javascript callback that updates the particular
-        PlotSession instance according to the selection made in a
-        Bokeh plot.
-
-        """
-        return CustomJS(
-            args={
-                "source": source,
-                "instance_id": id(self),
-                "name": repr(name),
-                "tabname": repr(tabname),
-            },
-            code="""
-            var indices = source.selected.indices;
-            console.log(indices)
-            var kernel = IPython.notebook.kernel;
-            // ensure that pace.plots is imported under its canonical name
-            kernel.execute("import pace.plots");
-            kernel.execute(`(
-                pace.plots.PlotSession
-                ._instances[${instance_id}]
-                ._update_selection(
-                    ${name},
-                    ${tabname},
-                    [${indices}],
-                )
-            )`);
-            """,
-        )
-
-    def _active_tab_callback(self, name):
-        """Return a javascript callback that updates the dictionary indicating
-        the active tab in each Bokeh Tabs panel"""
-        return CustomJS(
-            args={"instance_id": id(self), "name": repr(name)},
-            code="""
-            var kernel = IPython.notebook.kernel;
-            var active = cb_obj.active;
-            kernel.execute("import pace.plots");
-            kernel.execute(`pace.plots.PlotSession._instances[
-                                ${instance_id}
-                            ]._active_tabs[${name}] = ${active}
-            `);
-            """,
-        )
-
-    def _update_selection(self, name, tabname, indices):
-        self._selection_history[name] = self._plots[
-            name, tabname
-        ].plot_indices_to_selection(indices)
-
     def _add_subplot(self, plotter_cls, name, tabname):
         parent = self._selection_history.parent(name)
 
@@ -652,88 +577,103 @@ class PlotSession:
 
         plotter = plotter_cls(m, initial_selection=selection)
 
-        self._plots[name, tabname] = plotter
-
-        callback = self._selection_callback(plotter.source, name, tabname)
+        def selection_callback(event):
+            indices = plotter.source.selected.indices
+            new_selection = plotter.plot_indices_to_selection(indices)
+            self._selection_history[name] = new_selection
 
         p = plotter.plot()
-        p.js_on_event("selectiongeometry", callback)
+        p.on_event(SelectionGeometry, selection_callback)
 
         return p
 
     def add_plot(self, name, based_on=None):
-        """Creates all the plot options and shows them in a tab layout"""
+        ## Since this function starts a Bokeh server, stop various INFO
+        ## messages being displayed in the notebook
+        if not self._verbose:
+            logging.getLogger("bokeh.server").setLevel(logging.WARN)
+            logging.getLogger("tornado").setLevel(logging.WARN)
 
         self._selection_history.new_selection(name, based_on)
 
         if name not in self._active_tabs:
             self._active_tabs[name] = 0
 
-        p1 = self._add_subplot(SetBarChart, name, "set_bar_chart")
-        tab1 = Panel(
-            child=p1,
-            title="Set bar chart" if self._set_mode else "Value bar chart",
-        )
+        def plot_app(doc):
+            """Creates all the plot options and shows them in a tab layout"""
+            p1 = self._add_subplot(SetBarChart, name, "set_bar_chart")
+            tab1 = Panel(
+                child=p1,
+                title="Set bar chart" if self._set_mode else "Value bar chart",
+            )
 
-        p2 = self._add_subplot(
-            SetCardinalityHistogram, name, "set_cardinality_histogram"
-        )
-        tab2 = Panel(
-            child=p2,
-            title="Set cardinality histogram"
-            if self._set_mode
-            else "Value count histogram",
-        )
+            p2 = self._add_subplot(
+                SetCardinalityHistogram, name, "set_cardinality_histogram"
+            )
+            tab2 = Panel(
+                child=p2,
+                title="Set cardinality histogram"
+                if self._set_mode
+                else "Value count histogram",
+            )
 
-        p3 = self._add_subplot(
-            IntersectionHeatmap, name, "intersection_heatmap"
-        )
-        tab3 = Panel(
-            child=p3,
-            title="Intersection heatmap"
-            if self._set_mode
-            else "Combination heatmap",
-        )
+            p3 = self._add_subplot(
+                IntersectionHeatmap, name, "intersection_heatmap"
+            )
+            tab3 = Panel(
+                child=p3,
+                title="Intersection heatmap"
+                if self._set_mode
+                else "Combination heatmap",
+            )
 
-        p4 = self._add_subplot(
-            IntersectionBarChart, name, "intersection_bar_chart"
-        )
-        tab4 = Panel(
-            child=p4,
-            title="Intersection bar chart"
-            if self._set_mode
-            else "Combination bar chart",
-        )
+            p4 = self._add_subplot(
+                IntersectionBarChart, name, "intersection_bar_chart"
+            )
+            tab4 = Panel(
+                child=p4,
+                title="Intersection bar chart"
+                if self._set_mode
+                else "Combination bar chart",
+            )
 
-        p5 = self._add_subplot(
-            IntersectionCardinalityHistogram,
-            name,
-            "intersection_cardinality_histogram",
-        )
-        tab5 = Panel(
-            child=p5,
-            title="Intersection cardinality histogram"
-            if self._set_mode
-            else "Combination count histogram",
-        )
+            p5 = self._add_subplot(
+                IntersectionCardinalityHistogram,
+                name,
+                "intersection_cardinality_histogram",
+            )
+            tab5 = Panel(
+                child=p5,
+                title="Intersection cardinality histogram"
+                if self._set_mode
+                else "Combination count histogram",
+            )
 
-        p6 = self._add_subplot(
-            IntersectionDegreeHistogram, name, "intersection_degree_histogram"
-        )
-        tab6 = Panel(
-            child=p6,
-            title="Intersection degree histogram"
-            if self._set_mode
-            else "Combination length histogram",
-        )
+            p6 = self._add_subplot(
+                IntersectionDegreeHistogram,
+                name,
+                "intersection_degree_histogram",
+            )
+            tab6 = Panel(
+                child=p6,
+                title="Intersection degree histogram"
+                if self._set_mode
+                else "Combination length histogram",
+            )
 
-        tabs = Tabs(
-            tabs=[tab1, tab2, tab3, tab4, tab5, tab6],
-            active=self._active_tabs[name],
-        )
-        tabs.js_on_change("active", self._active_tab_callback(name))
+            tabs = Tabs(
+                tabs=[tab1, tab2, tab3, tab4, tab5, tab6],
+                active=self._active_tabs[name],
+            )
 
-        show(tabs)
+            def active_tab_callback(attr, old, new):
+                self._active_tabs[name] = new
+
+            tabs.on_change("active", active_tab_callback)
+
+            doc.add_root(tabs)
+
+        show(plot_app)
 
         if self._verbose:
             logging.info(
