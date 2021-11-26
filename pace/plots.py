@@ -59,20 +59,15 @@ class SetBarChart(PlotBase):
 
         self.bar_width = 0.5
         self.tools = ["box_select", "tap", "reset", "save"]
-        self.height = 960
-        self.width = 960
         self.title = "Set bar chart" if set_mode else "Value bar chart"
         self.xlabel = "Set" if set_mode else "Fields"
         self.ylabel = "Cardinality" if set_mode else "Number of missing values"
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            tools=self.tools,
-            width=self.width,
-            height=self.height,
-            x_range=list(self._bar_data.index,),
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        kwargs.setdefault("x_range", list(self._bar_data.index))
+        p = figure(**kwargs)
         p.vbar(
             x="index", top="_count", width=self.bar_width, source=self.source
         )
@@ -116,9 +111,7 @@ class SetCardinalityHistogram(PlotBase):
             initial_selection
         )
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset"]
-        self.height = 960
-        self.width = 960
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.title = (
             "Set cardinality histogram"
             if set_mode
@@ -134,14 +127,11 @@ class SetCardinalityHistogram(PlotBase):
         )
         self.linecolor = "white"
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            tools=self.tools,
-            width=self.width,
-            height=self.height,
-            # x_range=self._data.columns(),
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        p = figure(**kwargs)
+
         p.xaxis.ticker = [x + 1 for x in range(self._bins)]
         p.yaxis.ticker = [
             x + 1 for x in range(self._column_data_source["_bin_count"].max())
@@ -208,9 +198,7 @@ class IntersectionBarChart(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset"]
-        self.height = 960
-        self.width = 960
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.linecolor = "white"
         self.title = (
             "Intersection bar chart" if set_mode else "Combination bar chart"
@@ -220,14 +208,11 @@ class IntersectionBarChart(PlotBase):
             "Number of intersections" if set_mode else "Number of records"
         )
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            tools=self.tools,
-            width=self.width,
-            height=self.height,
-            # x_range=self._data.columns(),
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        p = figure(**kwargs)
+
         p.vbar(
             x="index",
             top="_count",
@@ -282,7 +267,7 @@ class IntersectionCardinalityHistogram(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset"]
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.height = 960
         self.width = 960
         self.linecolor = "white"
@@ -296,14 +281,11 @@ class IntersectionCardinalityHistogram(PlotBase):
             "Number of intersections" if set_mode else "Number of combinations"
         )
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            tools=self.tools,
-            width=self.width,
-            height=self.height,
-            # x_range=self._data.columns(),
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        p = figure(**kwargs)
+
         p.vbar(
             x="_bin",
             top="_count",
@@ -362,7 +344,7 @@ class IntersectionDegreeHistogram(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset"]
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.height = 960
         self.width = 960
         self.linecolor = "white"
@@ -378,14 +360,11 @@ class IntersectionDegreeHistogram(PlotBase):
             "Number of intersections" if set_mode else "Number of combinations"
         )
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            tools=self.tools,
-            width=self.width,
-            height=self.height,
-            # x_range=self._data.columns(),
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        p = figure(**kwargs)
+
         p.vbar(
             x="_bin",
             top="_count",
@@ -457,19 +436,17 @@ class IntersectionHeatmap(PlotBase):
 
         self.width = 960
         self.height = 960
-        self.tools = ["box_select", "tap", "reset"]
+        self.tools = ["box_select", "tap", "reset", "save"]
         self.fill = "#cccccc"
         self.grid_visible = False
 
-    def plot(self) -> bokeh.plotting.Figure:
-        p = figure(
-            title=self.title,
-            width=self.width,
-            height=self.height,
-            tools=self.tools,
-            x_range=self.x_range,
-            y_range=self.y_range,
-        )
+    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        kwargs.setdefault("title", self.title)
+        kwargs.setdefault("tools", self.tools)
+        kwargs.setdefault("x_range", self.x_range)
+        kwargs.setdefault("y_range", self.y_range)
+        p = figure(**kwargs)
+
         p.background_fill_color = self.fill
         p.grid.visible = self.grid_visible
         mapper = linear_cmap(
@@ -570,7 +547,7 @@ class PlotSession:
             )
             self._active_tabs = j["active_tabs"]
 
-    def _add_subplot(self, plotter_cls, name, tabname):
+    def _add_subplot(self, plotter_cls, name, tabname, **kwargs):
         parent = self._selection_history.parent(name)
 
         m = self._selection_history.membership(parent)
@@ -583,7 +560,7 @@ class PlotSession:
             new_selection = plotter.plot_indices_to_selection(indices)
             self._selection_history[name] = new_selection
 
-        p = plotter.plot()
+        p = plotter.plot(**kwargs)
         p.on_event(SelectionGeometry, selection_callback)
 
         return p
@@ -593,8 +570,8 @@ class PlotSession:
         name,
         based_on=None,
         notebook=True,
-        open_browser_tab=False,
         html_display_link=True,
+        **kwargs,
     ):
         ## Since this function starts a Bokeh server, stop various
         ## INFO and WARN messages being displayed in the notebook
@@ -607,16 +584,23 @@ class PlotSession:
         if name not in self._active_tabs:
             self._active_tabs[name] = 0
 
+        kwargs.setdefault("sizing_mode", "stretch_both")
+
         def plot_app(doc):
             """Creates all the plot options and shows them in a tab layout"""
-            p1 = self._add_subplot(SetBarChart, name, "set_bar_chart")
+            p1 = self._add_subplot(
+                SetBarChart, name, "set_bar_chart", **kwargs
+            )
             tab1 = Panel(
                 child=p1,
                 title="Set bar chart" if self._set_mode else "Value bar chart",
             )
 
             p2 = self._add_subplot(
-                SetCardinalityHistogram, name, "set_cardinality_histogram"
+                SetCardinalityHistogram,
+                name,
+                "set_cardinality_histogram",
+                **kwargs,
             )
             tab2 = Panel(
                 child=p2,
@@ -626,7 +610,7 @@ class PlotSession:
             )
 
             p3 = self._add_subplot(
-                IntersectionHeatmap, name, "intersection_heatmap"
+                IntersectionHeatmap, name, "intersection_heatmap", **kwargs,
             )
             tab3 = Panel(
                 child=p3,
@@ -636,7 +620,7 @@ class PlotSession:
             )
 
             p4 = self._add_subplot(
-                IntersectionBarChart, name, "intersection_bar_chart"
+                IntersectionBarChart, name, "intersection_bar_chart", **kwargs,
             )
             tab4 = Panel(
                 child=p4,
@@ -649,6 +633,7 @@ class PlotSession:
                 IntersectionCardinalityHistogram,
                 name,
                 "intersection_cardinality_histogram",
+                **kwargs,
             )
             tab5 = Panel(
                 child=p5,
@@ -661,6 +646,7 @@ class PlotSession:
                 IntersectionDegreeHistogram,
                 name,
                 "intersection_degree_histogram",
+                **kwargs,
             )
             tab6 = Panel(
                 child=p6,
@@ -698,20 +684,11 @@ class PlotSession:
             server.start()
             from IPython.core.display import display, HTML
 
-            if open_browser_tab:
-                server.show("/")
-
             if html_display_link:
                 display(
                     HTML(
-                        f"Plot available at <a href='http://localhost:{server.port}'"
-                        f"target='_blank' rel='noopener noreferrer'>"
-                        f"http://localhost:{server.port}</a> "
-                        + (
-                            " &mdash; opened in a new browser tab"
-                            if open_browser_tab
-                            else ""
-                        )
+                        f"<a href='http://localhost:{server.port}' target='_blank' rel='noopener noreferrer'>"
+                        f"Open plot in new browser tab</a> "
                     )
                 )
 
