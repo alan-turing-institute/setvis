@@ -584,8 +584,8 @@ class PlotSession:
         ## Since this function starts a Bokeh server, stop various
         ## INFO and WARN messages being displayed in the notebook
         if not self._verbose:
-            logging.getLogger("bokeh.server").setLevel(logging.WARN)
-            logging.getLogger("tornado").setLevel(logging.ERROR)
+            logging.getLogger("bokeh.server").setLevel(logging.CRITICAL)
+            logging.getLogger("tornado").setLevel(logging.CRITICAL)
 
         self._selection_history.new_selection(name, based_on)
 
