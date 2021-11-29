@@ -2,7 +2,7 @@ import json
 from bokeh.models.annotations import ColorBar
 import bokeh.plotting
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS
+from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS, HelpTool
 from bokeh.palettes import Oranges256
 from bokeh.transform import transform, linear_cmap
 from bokeh.models.widgets import Panel, Tabs
@@ -58,7 +58,15 @@ class SetBarChart(PlotBase):
         )
 
         self.bar_width = 0.5
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = [
+            "box_select", "tap", "reset", "save",
+            HelpTool(
+                redirect="https://github.com/alan-turing-institute/visualising-data-profiles/#link-to-docs-page",
+                description="""SetBarChart
+
+Extended description ..."""
+            )
+        ]
         self.title = "Set bar chart" if set_mode else "Value bar chart"
         self.xlabel = "Set" if set_mode else "Fields"
         self.ylabel = "Cardinality" if set_mode else "Number of missing values"
