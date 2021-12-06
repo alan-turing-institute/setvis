@@ -4,7 +4,7 @@ import psycopg2
 import psycopg2.extensions
 from psycopg2 import sql
 
-from typing import Sequence, Callable, Optional, Any, List
+from typing import Sequence, Callable, Optional, Any, List, Tuple
 from .setexpression import Set, SetExpr
 import logging
 
@@ -34,6 +34,7 @@ def selection_to_series(universe, selection, sort=True):
 
 
 class Membership:
+    """Membership"""
 
     _intersection_id_to_columns: pd.DataFrame
     _intersection_id_to_records: pd.DataFrame
@@ -217,7 +218,9 @@ class Membership:
         intersection_spec:
 
         """
-        matching_intersection_ids = self.matching_intersections(intersection_spec)
+        matching_intersection_ids = self.matching_intersections(
+            intersection_spec
+        )
 
         # np.concatenate needs at least one array, so handle empty case
         # separately
@@ -242,7 +245,9 @@ class Membership:
         could have a performance benefit
 
         """
-        matching_intersection_ids = self.matching_intersections(intersection_spec)
+        matching_intersection_ids = self.matching_intersections(
+            intersection_spec
+        )
 
         return sum(
             len(self._intersection_id_to_records.loc[k])
@@ -457,7 +462,23 @@ class Membership:
         )
 
 
-def intersection_bar_chart_data(m: Membership):
+def intersection_bar_chart_data(m: Membership) -> pd.DataFrame:
+    """ Returns data used to generate an IntersectionBarChart plot.
+    
+    For every unique set intersection the function counts the number of records 
+    with this particular intersection.
+
+    Parameters
+    ----------
+    m: Membership
+        Membership object
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame that contains the count of each set intersection.
+
+    """
     return (
         m.count_intersections()
         .sort_values("_count", ascending=False)
@@ -465,7 +486,34 @@ def intersection_bar_chart_data(m: Membership):
     )
 
 
-def intersection_cardinality_histogram_data(m: Membership, bins: int = 10):
+def intersection_cardinality_histogram_data(
+    m: Membership, bins: int = 10
+) -> Tuple[pd.DataFrame, pd.DataFrame, np.array, int]:
+    """Returns data used to generate an IntersectionCardinalityHistogram plot.
+    
+    Computes the histogram bins over the number of records with a 
+    given set interction.
+    
+    Parameters
+    ----------
+    m: Membership
+        Membership object
+    bins: int, optional
+        Number of bins
+
+    Returns
+    -------
+    data: pd.DataFrame
+        DataFrame that contains the count of each unique set intersection.
+    column_data_source: pd.DataFrame
+        DataFrame that contains the count for each bin
+    edges: np.array
+        Contains the bin edges
+    bins: int
+        Number of bins. Can deviate from the input parameter bins 
+        if the number of unique values is less than the number of bins.
+    
+    """
     labels = list(m.count_intersections().index.values)
     data = pd.DataFrame(
         {"_count": m.count_intersections()["_count"]}, index=labels,
@@ -475,7 +523,7 @@ def intersection_cardinality_histogram_data(m: Membership, bins: int = 10):
     _, edges = np.histogram(data["_count"], bins)
     bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
 
-    data["_bin_id"] = bin_ids - 1
+    data["_bin_id"] = bin_ids - 1  # to match indices return by bokeh tools
 
     # dict for plotting
     list_bins = [x for x in range(bins)]
@@ -484,7 +532,35 @@ def intersection_cardinality_histogram_data(m: Membership, bins: int = 10):
     return data, column_data_source, edges, bins
 
 
-def intersection_degree_histogram_data(m: Membership, bins: int = 10):
+def intersection_degree_histogram_data(
+    m: Membership, bins: int = 10
+) -> Tuple[pd.DataFrame, pd.DataFrame, np.array, int]:
+    """Returns data used to generate an IntersectionDegreeHistogram plot.
+    
+    Computes the histogram bins over the number of columns in 
+    each set intersection.
+    
+    Parameters
+    ----------
+    m: Membership
+        Membership object 
+    bins: int, optional
+        Number of bins
+
+    Returns
+    -------
+    data: pd.DataFrame
+        DataFrame that contains the number of fields in each unique 
+        set intersection.
+    column_data_source: pd.DataFrame
+        DataFrame that contains the count for each bin. 
+    edges: np.array
+        Contains the bin edges.
+    bins: int
+        Number of bins. Can deviate from the input parameter bins 
+        if the number of unique values is less than the number of bins.
+    
+    """
     labels = list(m.intersections().index.values)
     data = pd.DataFrame(
         {"_length": list(m.intersections().sum(axis=1))}, index=labels,
@@ -500,7 +576,24 @@ def intersection_degree_histogram_data(m: Membership, bins: int = 10):
     return data, column_data_source, edges, bins
 
 
-def set_bar_chart_data(m: Membership):
+def set_bar_chart_data(m: Membership) -> pd.DataFrame:
+    """Returns data used to generate a SetBarChart plot.
+    
+    The function counts the number of records in each set (column) and the number
+    of records that are member of the empty set. The empty set contains all records 
+    that are not member of any set. 
+
+    Parameters
+    ----------
+    m: Membership
+        Membership object 
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame that contains the count of members of each set.
+
+    """
     empty_set = m.empty_intersection()
     labels = m.columns()
     sets = [m.count_matching_records(Col(label)) for label in labels]
@@ -513,11 +606,35 @@ def set_bar_chart_data(m: Membership):
     return pd.DataFrame({"_count": sets}, index=labels,)
 
 
-def set_cardinality_histogram_data(m: Membership, bins: int = 11):
+def set_cardinality_histogram_data(
+    m: Membership, bins: int = 11
+) -> Tuple[pd.DataFrame, pd.DataFrame, np.array]:
+    """Returns data used to generate an SetCardinalityHistogram plot.
+    
+    Computes the histogram bins over the number of records that are 
+    member of each set. This includes the empty set. 
+    
+    Parameters
+    ----------
+    m: Membership
+        Membership object 
+    bins: int, optional
+        Number of bins
+
+    Returns
+    -------
+    data: pd.DataFrame
+        DataFrame that contains the count of set members.
+    column_data_source: pd.DataFrame
+        DataFrame that contains the count for each bin 
+    edges: np.array
+        Contains the bin edges which are used t
+        
+    """
     data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
-    _, hist_edges = np.histogram(data_subset, bins=bins - 1)
-    bin_ids = np.fmin(np.digitize(data_subset, hist_edges), bins - 1)
+    _, edges = np.histogram(data_subset, bins=bins - 1)
+    bin_ids = np.fmin(np.digitize(data_subset, edges), bins - 1)
     bin_ids += 1
     data["_bin_id"] = 1
     data["_bin_id"].loc[data_subset.index] = bin_ids[:, 0]
@@ -526,10 +643,32 @@ def set_cardinality_histogram_data(m: Membership, bins: int = 11):
     keys = [x + 1 for x in range(bins)]
     vals = [data[data["_bin_id"] == x].shape[0] for x in keys]
     column_data_source = pd.DataFrame({"_bin_id": keys, "_bin_count": vals,})
-    return data, column_data_source, hist_edges
+    return data, column_data_source, edges
 
 
-def intersection_heatmap_data(m: Membership):
+def intersection_heatmap_data(m: Membership) -> pd.DataFrame:
+    """Returns data used to generate an IntersectionHeatmap plot.
+    
+    Creates a matrix with dimensions unique set intersections x columns
+    (including the empty set). 
+    The values of the matrix are determined as follows:
+    For each matrix row (set intersection), the value is
+    - given by the count of records with this particular intersection if the column is 
+      part of the set intersection
+    - 0 otherwise
+    
+
+    Parameters
+    ----------
+    m: Membership
+        Membership object on which the plots are based.
+
+    Returns
+    -------
+    pd.DataFrame
+        Contains the heatmap matrix.
+        
+    """
     counts = m.count_intersections().copy()  # don't modify original df
     counts["empty"] = m.empty_intersection()
     return (

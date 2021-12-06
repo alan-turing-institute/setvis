@@ -86,6 +86,19 @@ Extended description ..."""
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        """ Function to map the interactive selection made in the plot to 
+            a ``Selection`` object.
+
+            Parameters
+            ----------
+            indices : Sequence[int]
+                indices of the bars selected in the plot
+
+            Returns
+            -------
+            Selection object
+        
+        """
         col_labels = self._data.columns()
 
         return Selection(
