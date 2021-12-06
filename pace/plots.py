@@ -2,7 +2,13 @@ import json
 from bokeh.models.annotations import ColorBar
 import bokeh.plotting
 from bokeh.plotting import figure, show
-from bokeh.models import ColumnDataSource, LinearColorMapper, tools, CustomJS, HelpTool
+from bokeh.models import (
+    ColumnDataSource,
+    LinearColorMapper,
+    tools,
+    CustomJS,
+    HelpTool,
+)
 from bokeh.palettes import Oranges256
 from bokeh.transform import transform, linear_cmap
 from bokeh.models.widgets import Panel, Tabs
@@ -59,13 +65,16 @@ class SetBarChart(PlotBase):
 
         self.bar_width = 0.5
         self.tools = [
-            "box_select", "tap", "reset", "save",
+            "box_select",
+            "tap",
+            "reset",
+            "save",
             HelpTool(
                 redirect="https://github.com/alan-turing-institute/visualising-data-profiles/#link-to-docs-page",
                 description="""SetBarChart
 
-Extended description ..."""
-            )
+Extended description ...""",
+            ),
         ]
         self.title = "Set bar chart" if set_mode else "Value bar chart"
         self.xlabel = "Set" if set_mode else "Fields"
@@ -618,26 +627,26 @@ class PlotSession:
             )
 
             p2 = self._add_subplot(
+                IntersectionHeatmap, name, "intersection_heatmap", **kwargs,
+            )
+            tab2 = Panel(
+                child=p2,
+                title="Intersection heatmap"
+                if self._set_mode
+                else "Combination heatmap",
+            )
+
+            p3 = self._add_subplot(
                 SetCardinalityHistogram,
                 name,
                 "set_cardinality_histogram",
                 **kwargs,
             )
-            tab2 = Panel(
-                child=p2,
+            tab3 = Panel(
+                child=p3,
                 title="Set cardinality histogram"
                 if self._set_mode
                 else "Value count histogram",
-            )
-
-            p3 = self._add_subplot(
-                IntersectionHeatmap, name, "intersection_heatmap", **kwargs,
-            )
-            tab3 = Panel(
-                child=p3,
-                title="Intersection heatmap"
-                if self._set_mode
-                else "Combination heatmap",
             )
 
             p4 = self._add_subplot(
