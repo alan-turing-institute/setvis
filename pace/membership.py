@@ -672,7 +672,8 @@ def intersection_heatmap_data(m: Membership) -> pd.DataFrame:
         
     """
     counts = m.count_intersections().copy()  # don't modify original df
-    counts["empty"] = m.empty_intersection()
+    if m._set_mode:
+        counts["empty"] = m.empty_intersection()
     return (
         counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
     )
