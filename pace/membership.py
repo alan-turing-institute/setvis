@@ -594,15 +594,17 @@ def set_bar_chart_data(m: Membership) -> pd.DataFrame:
         DataFrame that contains the count of members of each set.
 
     """
-    empty_set = m.empty_intersection()
+
     labels = m.columns()
     sets = [m.count_matching_records(Col(label)) for label in labels]
-    labels += ["empty"]
-    sets += [
-        m.count_intersections()[empty_set]["_count"]
-        .reset_index(drop=True)
-        .get(0, 0)
-    ]
+    if m._set_mode:
+        empty_set = m.empty_intersection()
+        labels += ["empty"]
+        sets += [
+            m.count_intersections()[empty_set]["_count"]
+            .reset_index(drop=True)
+            .get(0, 0)
+        ]
     return pd.DataFrame({"_count": sets}, index=labels,)
 
 
