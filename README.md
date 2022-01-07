@@ -5,6 +5,8 @@ A tool for visualising patterns of missingness in data
 
 ### Pip
 
+#### Installing the module
+
 These instructions have been tested with:
 - Python 3.8.2 on MacOS 10.15 (Catalina)
 
@@ -22,11 +24,25 @@ pip install --upgrade pip
 pip install .
 ```
 
-If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
+#### Running the tutorial notebooks
+
+If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with a few additional steps.
+
+Make sure that the module `notebook` is installed into the virtual environment.
 
 ```
-jupyter notebook notebooks
+pip install notebook
 ```
+Then start the notebook with 
+
+```
+python -m jupyter notebook
+```
+
+For the notebooks to run successfully, we need to `pip install` a few more packages:
+
+- matplotlib
+- sklearn
 
 ### Conda
 
