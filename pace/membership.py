@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
-import psycopg2
-import psycopg2.extensions
-from psycopg2 import sql
+
+# import psycopg2
+# import psycopg2.extensions
+# from psycopg2 import sql
 
 from typing import Sequence, Callable, Optional, Any, List, Tuple
 from .setexpression import Set, SetExpr
@@ -352,12 +353,13 @@ class Membership:
 
     @classmethod
     def from_postgres(
-        cls,
-        conn: psycopg2.extensions.connection,
-        relation: str,
-        key: str,
-        schema: Optional[str] = None,
+        cls, conn, relation: str, key: str, schema: Optional[str] = None,
     ):
+
+        import psycopg2
+        import psycopg2.extensions
+        from psycopg2 import sql
+
         # Start a transaction on the connection
         with conn:
             with conn.cursor() as curs:
