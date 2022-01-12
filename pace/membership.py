@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 from typing import Sequence, Callable, Optional, Any, List, Tuple
 from .setexpression import Set, SetExpr
 import logging
