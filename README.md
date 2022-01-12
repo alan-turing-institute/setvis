@@ -88,7 +88,7 @@ cd visualising-data-profiles
 conda install Bottleneck=1.3.2
  
 # Install pace itself and the remaining dependencies with pip
-pip install .
+pip install .[all]
 ```
 
 If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
