@@ -41,7 +41,7 @@ which will include just PACE and a minimal set of dependencies.
 #### Extras and fine-tuning the installation
 
 There are several dependency flags that can be passed to pip to install
-various optional dependencies.  Use them like this: `pip install .[notebook]`, which installs the notebook dependencies.
+various optional dependencies.  For instance: `pip install .[notebook]` (which installs the notebook dependencies).
 
  - `performance-extras`: some additional libraries for improving the performance of numerical computations
  - `notebook`: for the functionality required by the notebook examples
