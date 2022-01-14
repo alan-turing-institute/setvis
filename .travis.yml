@@ -7,6 +7,7 @@ install:
   - pip install --upgrade pip
   - pip install poetry
   - pip install papermill
+  - poetry update
   - poetry install -E all
 
 jobs:
