@@ -7,11 +7,11 @@ install:
   - pip install --upgrade pip
   - pip install poetry
   - pip install papermill
-  - poetry install
+  - poetry install -E all
 
 jobs:
   - script:
     - pytest tests
   - script:
     # Check that each notebook can run, but not its output
-    - cd notebooks && python -m papermill "Tutorial 1a - Overview and an example analysis.ipynb" _papermill_output.ipynb
+    - cd notebooks && papermill "Tutorial 1a - Overview and an example analysis.ipynb" _papermill_output.ipynb
