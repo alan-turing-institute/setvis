@@ -14,5 +14,4 @@ jobs:
     - pytest tests
   - script:
     # Check that each notebook can run, but not its output
-    - mkdir -p ../../output
-    - cd notebooks && papermill "Tutorial 1a - Overview and an example analysis.ipynb" ../../output/output.ipynb
+    - cd notebooks && papermill "Tutorial 1a - Overview and an example analysis.ipynb" _papermill_output.ipynb
