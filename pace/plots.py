@@ -21,7 +21,7 @@ import logging
 import base64
 from weakref import WeakValueDictionary
 from IPython.display import Javascript, display
-from ipywidgets import widgets
+
 from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
 from pace.membership import Membership

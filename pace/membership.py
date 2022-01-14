@@ -1,10 +1,6 @@
 import numpy as np
 import pandas as pd
 
-# import psycopg2
-# import psycopg2.extensions
-# from psycopg2 import sql
-
 from typing import Sequence, Callable, Optional, Any, List, Tuple
 from .setexpression import Set, SetExpr
 import logging
@@ -355,7 +351,6 @@ class Membership:
     def from_postgres(
         cls, conn, relation: str, key: str, schema: Optional[str] = None,
     ):
-
         import psycopg2
         import psycopg2.extensions
         from psycopg2 import sql

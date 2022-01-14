@@ -5,6 +5,8 @@ A tool for visualising patterns of missingness in data
 
 ### Pip
 
+#### Installing the module
+
 These instructions have been tested with:
 - Python 3.8.2 on MacOS 10.15 (Catalina)
 
@@ -18,14 +20,51 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install --upgrade pip
+```
 
+Then run either:
+
+```
+pip install .[all]
+```
+which will install PACE and all dependencies, including several optional dependencies
+
+or run:
+
+```
 pip install .
 ```
 
-If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
+which will include just PACE and a minimal set of dependencies.
+
+
+#### Extras and fine-tuning the installation
+
+There are several dependency flags that can be passed to pip to install
+various optional dependencies.  For instance: `pip install .[notebook]` (which installs the notebook dependencies).
+
+ - `performance-extras`: some additional libraries for improving the performance of numerical computations
+ - `notebook`: for the functionality required by the notebook examples
+ - `db`: to support the database interface (currently just `psycopg2`)
+ - `doc`: sphinx and other libraries for building the documentation
+ - `test`: pytest and other libraries for running the tests
+ - `all`: all of the above
+
+
+#### Running the tutorial notebooks
+
+The bokeh plots require `notebook >= 6.4` to work properly.
+
+Installing the `notebook` extra dependency will include everything
+required to run pace in a notebook, and to run the tutorial examples
+that do not need a database connection. For the latter, install `db`
+as well.
+
+If the installation succeeded, it should be possible to run the
+notebooks in the `notebooks` directory of the repository:
 
 ```
-jupyter notebook notebooks
+python -m jupyter notebook
 ```
 
 ### Conda
@@ -49,7 +88,7 @@ cd visualising-data-profiles
 conda install Bottleneck=1.3.2
  
 # Install pace itself and the remaining dependencies with pip
-pip install .
+pip install .[all]
 ```
 
 If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
