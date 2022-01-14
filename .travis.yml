@@ -13,4 +13,5 @@ jobs:
   - script:
     - pytest tests
   - script:
-    - cd notebooks && papermill "Tutorial 1a - Overview and an example analysis.ipynb"
+    # Check that each notebook can run, but not its output
+    - cd notebooks && papermill "Tutorial 1a - Overview and an example analysis.ipynb" /dev/null
