@@ -4,8 +4,7 @@
 # exceptions, but does not check their output (only that they ran
 # successfully)
 
-# Returns 0 if they all succeeded, nonzero otherwise (1 if there was
-# an error when executing the notebook
+# Returns zero if they all succeeded, nonzero otherwise
 
 cd ../notebooks
 
