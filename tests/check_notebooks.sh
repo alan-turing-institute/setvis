@@ -11,7 +11,8 @@ cd ../notebooks
 
 mkdir -p ../_notebook-output
 
-find . -name '*.ipynb' -depth 1 \
+find . -maxdepth 1 \
+     -name '*.ipynb' \
      ! -name 'Postgres example.ipynb' \
      -print0 |
     xargs -0 -n 1 -I {} papermill "{}" "../_notebook-output/{}"
