@@ -25,9 +25,9 @@ pip install --upgrade pip
 Then run either:
 
 ```
-pip install .[all]
+pip install ".[extra]"
 ```
-which will install PACE and all dependencies, including several optional dependencies
+which will install PACE and most of the optional extra dependencies
 
 or run:
 
@@ -41,22 +41,26 @@ which will include just PACE and a minimal set of dependencies.
 #### Extras and fine-tuning the installation
 
 There are several dependency flags that can be passed to pip to install
-various optional dependencies.  For instance: `pip install .[notebook]` (which installs the notebook dependencies).
+various optional dependencies.  For instance: `pip install ".[notebook]"` (which installs the notebook dependencies).
 
- - `performance-extras`: some additional libraries for improving the performance of numerical computations
+ - `extra`: `[extra]` is the same as `[notebook,doc,test]`
+ - `all`: `[all]` is the same as `[notebook,doc,test,performance-extras,db]` (includes all of the below)
+
  - `notebook`: for the functionality required by the notebook examples
- - `db`: to support the database interface (currently just `psycopg2`)
  - `doc`: sphinx and other libraries for building the documentation
  - `test`: pytest and other libraries for running the tests
- - `all`: all of the above
+
+The following dependencies place additional requirements on the environment where the package is to be installed:
+ - `performance-extras`: [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/) and [Bottleneck](https://bottleneck.readthedocs.io/en/latest/), for improving the performance of numerical computations. **Requires a C compiler**: see [Bottleneck requirements](https://bottleneck.readthedocs.io/en/latest/intro.html#install)
+ - `db`: to support the database interface (currently just [psycopg2](https://www.psycopg.org/docs/)). **Requires an installation of PostgreSQL**.
 
 
 #### Running the tutorial notebooks
 
-The bokeh plots require `notebook >= 6.4` to work properly.
+The Bokeh plots produced by PACE require the package `notebook >= 6.4` to display properly.
 
-Installing the `notebook` extra dependency will include everything
-required to run pace in a notebook, and to run the tutorial examples
+Installing the `notebook` extra dependency set (see above) will include everything
+required to run PACE in a notebook, and to run the tutorial examples
 that do not need a database connection. For the latter, install `db`
 as well.
 
@@ -88,7 +92,7 @@ cd visualising-data-profiles
 conda install Bottleneck=1.3.2
  
 # Install pace itself and the remaining dependencies with pip
-pip install .[all]
+pip install ".[all]"
 ```
 
 If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
