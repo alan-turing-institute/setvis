@@ -4,6 +4,7 @@ import bokeh.plotting
 from bokeh.plotting import figure, show
 from bokeh.models import (
     ColumnDataSource,
+    DataRange1d,
     LinearColorMapper,
     tools,
     CustomJS,
@@ -67,6 +68,8 @@ class SetBarChart(PlotBase):
         self.tools = [
             "box_select",
             "tap",
+            "box_zoom",
+            "pan",
             "reset",
             "save",
             HelpTool(
@@ -84,9 +87,17 @@ Extended description ...""",
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
         kwargs.setdefault("x_range", list(self._bar_data.index))
+
+        if kwargs.get("y_axis_type", "linear") == "log":
+            kwargs.setdefault("y_range", DataRange1d(start=0.5))
+
         p = figure(**kwargs)
         p.vbar(
-            x="index", top="_count", width=self.bar_width, source=self.source
+            x="index",
+            bottom=0.001,
+            top="_count",
+            width=self.bar_width,
+            source=self.source,
         )
         p.xaxis.major_label_orientation = "vertical"
         p.xaxis.axis_label = self.xlabel
@@ -160,6 +171,10 @@ class SetCardinalityHistogram(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
+
+        if kwargs.get("y_axis_type", "linear") == "log":
+            kwargs.setdefault("y_range", DataRange1d(start=0.5))
+
         p = figure(**kwargs)
 
         p.xaxis.ticker = [x + 1 for x in range(self._bins)]
@@ -168,6 +183,7 @@ class SetCardinalityHistogram(PlotBase):
         ]
         p.vbar(
             x="_bin_id",
+            bottom=0.001,
             top="_bin_count",
             width=self.bar_width,
             source=self.source,
@@ -241,10 +257,15 @@ class IntersectionBarChart(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
+
+        if kwargs.get("y_axis_type", "linear") == "log":
+            kwargs.setdefault("y_range", DataRange1d(start=0.5))
+
         p = figure(**kwargs)
 
         p.vbar(
             x="index",
+            bottom=0.001,
             top="_count",
             width=self.bar_width,
             source=self.source,
@@ -314,10 +335,15 @@ class IntersectionCardinalityHistogram(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
+
+        if kwargs.get("y_axis_type", "linear") == "log":
+            kwargs.setdefault("y_range", DataRange1d(start=0.5))
+
         p = figure(**kwargs)
 
         p.vbar(
             x="_bin",
+            bottom=0.001,
             top="_count",
             width=self.bar_width,
             source=self.source,
@@ -393,10 +419,15 @@ class IntersectionDegreeHistogram(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
+
+        if kwargs.get("y_axis_type", "linear") == "log":
+            kwargs.setdefault("y_range", DataRange1d(start=0.5))
+
         p = figure(**kwargs)
 
         p.vbar(
             x="_bin",
+            bottom=0.001,
             top="_count",
             width=self.bar_width,
             source=self.source,
@@ -577,6 +608,26 @@ class PlotSession:
             )
             self._active_tabs = j["active_tabs"]
 
+    def _extract_subplot_kwargs(self, add_plot_kwargs, tabname):
+        """Given the kwargs dictionary passed to add_plot (`add_plot_kwargs`),
+        for each element (generally a keyword argument to forward to
+        the Bokeh figure), if this is itself a dictionary then extract
+        `tabname` (or None), which will be the relevant argument for
+        the subplot, otherwise, return the element unchanged.
+
+        """
+        subplot_kwargs = {}
+        for k, v in add_plot_kwargs.items():
+            if isinstance(v, dict):
+                try:
+                    subplot_kwargs[k] = v[tabname]
+                except KeyError:
+                    pass
+            else:
+                subplot_kwargs[k] = v
+
+        return subplot_kwargs
+
     def _add_subplot(self, plotter_cls, name, tabname, **kwargs):
         parent = self._selection_history.parent(name)
 
@@ -590,7 +641,9 @@ class PlotSession:
             new_selection = plotter.plot_indices_to_selection(indices)
             self._selection_history[name] = new_selection
 
-        p = plotter.plot(**kwargs)
+        kwargs_new = self._extract_subplot_kwargs(kwargs, tabname)
+
+        p = plotter.plot(**kwargs_new)
         p.on_event(SelectionGeometry, selection_callback)
 
         return p
@@ -605,7 +658,10 @@ class PlotSession:
     ):
         ## Since this function starts a Bokeh server, stop various
         ## INFO and WARN messages being displayed in the notebook
-        if not self._verbose:
+        if self._verbose:
+            logging.getLogger("bokeh.server").setLevel(logging.DEBUG)
+            logging.getLogger("tornado").setLevel(logging.WARNING)
+        else:
             logging.getLogger("bokeh.server").setLevel(logging.CRITICAL)
             logging.getLogger("tornado").setLevel(logging.CRITICAL)
 

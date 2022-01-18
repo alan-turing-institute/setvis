@@ -6,7 +6,13 @@ python:
 install:
   - pip install --upgrade pip
   - pip install poetry
-  - poetry install
+  - pip install papermill
+  - poetry update
+  - poetry install -E all
 
-script:
-  - pytest tests
+jobs:
+  - script:
+    - pytest tests
+  - script:
+    # Currently checks that each notebook can run, but not its output
+    - cd tests && bash check_notebooks.sh
