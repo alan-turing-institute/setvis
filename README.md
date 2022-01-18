@@ -27,7 +27,7 @@ Then run either:
 ```
 pip install ".[extra]"
 ```
-which will install PACE and all dependencies, including several optional dependencies
+which will install PACE and most of the optional extra dependencies
 
 or run:
 
