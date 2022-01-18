@@ -12,6 +12,7 @@ mkdir -p ../_notebook-output
 
 find . -maxdepth 1 \
      -name '*.ipynb' \
+     ! -name 'Performance.ipynb' \
      ! -name 'Postgres example.ipynb' \
      ! -name 'Tutorial 3 - Loading data from Postgres.ipynb' \
      ! -name 'Tutorial 3 (supplemental) - Create the Postgres database.ipynb' \
