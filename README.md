@@ -50,17 +50,17 @@ various optional dependencies.  For instance: `pip install .[notebook]` (which i
  - `doc`: sphinx and other libraries for building the documentation
  - `test`: pytest and other libraries for running the tests
 
-The following dependencies have additional environmental dependencies:
+The following dependencies place additional requirements on the environment where the package is to be installed:
  - `performance-extras`: [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/) and [Bottleneck](https://bottleneck.readthedocs.io/en/latest/), for improving the performance of numerical computations. **Requires a C compiler**: see [Bottleneck requirements](https://bottleneck.readthedocs.io/en/latest/intro.html#install)
  - `db`: to support the database interface (currently just [psycopg2](https://www.psycopg.org/docs/)). **Requires an installation of PostgreSQL**.
 
 
 #### Running the tutorial notebooks
 
-The bokeh plots require `notebook >= 6.4` to work properly.
+The Bokeh plots produced by PACE require the package `notebook >= 6.4` to display properly.
 
-Installing the `notebook` extra dependency will include everything
-required to run pace in a notebook, and to run the tutorial examples
+Installing the `notebook` extra dependency set (see above) will include everything
+required to run PACE in a notebook, and to run the tutorial examples
 that do not need a database connection. For the latter, install `db`
 as well.
 
