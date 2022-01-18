@@ -608,26 +608,6 @@ class PlotSession:
             )
             self._active_tabs = j["active_tabs"]
 
-    def _extract_subplot_kwargs(self, add_plot_kwargs, tabname):
-        """Given the kwargs dictionary passed to add_plot (`add_plot_kwargs`),
-        for each element (generally a keyword argument to forward to
-        the Bokeh figure), if this is itself a dictionary then extract
-        `tabname` (or None), which will be the relevant argument for
-        the subplot, otherwise, return the element unchanged.
-
-        """
-        subplot_kwargs = {}
-        for k, v in add_plot_kwargs.items():
-            if isinstance(v, dict):
-                try:
-                    subplot_kwargs[k] = v[tabname]
-                except KeyError:
-                    pass
-            else:
-                subplot_kwargs[k] = v
-
-        return subplot_kwargs
-
     def _add_subplot(self, plotter_cls, name, tabname, **kwargs):
         parent = self._selection_history.parent(name)
 
@@ -641,9 +621,15 @@ class PlotSession:
             new_selection = plotter.plot_indices_to_selection(indices)
             self._selection_history[name] = new_selection
 
-        kwargs_new = self._extract_subplot_kwargs(kwargs, tabname)
+        # E.g. a call to add_plot like this:
+        #   session.add_plot(..., tabname={y_axis_type="log"})
+        # would result in plotter.plot getting called as
+        #   plotter.plot(y_axis_type="log")
+        #
+        kwargs_plot = kwargs.get(tabname, {})
+        kwargs_plot.setdefault("sizing_mode", "stretch_both")
 
-        p = plotter.plot(**kwargs_new)
+        p = plotter.plot(**kwargs_plot)
         p.on_event(SelectionGeometry, selection_callback)
 
         return p
@@ -669,8 +655,6 @@ class PlotSession:
 
         if name not in self._active_tabs:
             self._active_tabs[name] = 0
-
-        kwargs.setdefault("sizing_mode", "stretch_both")
 
         def plot_app(doc):
             """Creates all the plot options and shows them in a tab layout"""
