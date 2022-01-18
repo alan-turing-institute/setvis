@@ -51,7 +51,7 @@ various optional dependencies.  For instance: `pip install .[notebook]` (which i
  - `test`: pytest and other libraries for running the tests
 
 The following dependencies have additional environmental dependencies:
- - `performance-extras`: [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/) and [Bottleneck](https://bottleneck.readthedocs.io/en/latest/), for improving the performance of numerical computations. **Requires a C compiler:** See [Bottleneck requirements](https://bottleneck.readthedocs.io/en/latest/intro.html#install)
+ - `performance-extras`: [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/) and [Bottleneck](https://bottleneck.readthedocs.io/en/latest/), for improving the performance of numerical computations. **Requires a C compiler**: see [Bottleneck requirements](https://bottleneck.readthedocs.io/en/latest/intro.html#install)
  - `db`: to support the database interface (currently just [psycopg2](https://www.psycopg.org/docs/)). **Requires an installation of PostgreSQL**.
 
 
