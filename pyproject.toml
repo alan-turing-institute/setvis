@@ -28,14 +28,14 @@ numexpr = { version = "^2.7", optional = true }
 Bottleneck = { version = "^1.3", optional = true }
 
 [tool.poetry.extras]
-performance-extras = ["numexpr", "Bottleneck"]
 notebooks = ["notebook", "matplotlib", "scikit-learn"]
 doc = ["Sphinx", "nbsphinx", "pydata-sphinx-theme"]
 test = ["pytest"]
+
+performance-extras = ["numexpr", "Bottleneck"]
 db = ["psycopg2"]
-all = [
-  "numexpr",
-  "Bottleneck",
+
+extra = [
   "notebook",
   "matplotlib",
   "scikit-learn",
@@ -43,6 +43,18 @@ all = [
   "nbsphinx",
   "pydata-sphinx-theme",
   "pytest",
+]
+
+all = [
+  "notebook",
+  "matplotlib",
+  "scikit-learn",
+  "Sphinx",
+  "nbsphinx",
+  "pydata-sphinx-theme",
+  "pytest",
+  "numexpr",
+  "Bottleneck",
   "psycopg2",
 ]
 
