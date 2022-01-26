@@ -52,10 +52,20 @@ class PlotBase:
 
 
 class SetBarChart(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.set_bar_chart_data(data)
+        self._bar_data = membership.set_bar_chart_data(
+            data, sort_x_by, sort_x_order
+        )
         self.source = ColumnDataSource(
             membership.set_bar_chart_data(data).reset_index()
         )
@@ -138,7 +148,15 @@ Extended description ...""",
 
 
 class SetCardinalityHistogram(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
         self._bins = 11
@@ -146,7 +164,7 @@ class SetCardinalityHistogram(PlotBase):
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = membership.set_cardinality_histogram_data(data, self._bins)
+        ) = membership.set_cardinality_histogram_data(data, bins=self._bins,)
         self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
@@ -233,10 +251,20 @@ class SetCardinalityHistogram(PlotBase):
 
 
 class IntersectionBarChart(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.intersection_bar_chart_data(data)
+        self._bar_data = membership.intersection_bar_chart_data(
+            data, sort_x_by, sort_x_order,
+        )
         self.source = ColumnDataSource(self._bar_data)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -302,7 +330,15 @@ class IntersectionBarChart(PlotBase):
 
 
 class IntersectionCardinalityHistogram(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
         (
@@ -310,7 +346,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_cardinality_histogram_data(data)
+        ) = membership.intersection_cardinality_histogram_data(data,)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -384,7 +420,15 @@ class IntersectionCardinalityHistogram(PlotBase):
 
 
 class IntersectionDegreeHistogram(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
         (
@@ -468,11 +512,21 @@ class IntersectionDegreeHistogram(PlotBase):
 
 
 class IntersectionHeatmap(PlotBase):
-    def __init__(self, data: Membership, initial_selection=Selection()):
+    def __init__(
+        self,
+        data: Membership,
+        initial_selection=Selection(),
+        sort_x_by=None,
+        sort_y_by=None,
+        sort_x_order=None,
+        sort_y_order=None,
+    ):
         set_mode = data._set_mode
         self._data = data
 
-        heatmap_data = membership.intersection_heatmap_data(data)
+        heatmap_data = membership.intersection_heatmap_data(
+            data, sort_x_by, sort_y_by, sort_x_order, sort_y_order,
+        )
         heatmap_data["intersection_id_str"] = heatmap_data.index.values.astype(
             str
         )
@@ -613,8 +667,24 @@ class PlotSession:
 
         m = self._selection_history.membership(parent)
         selection = self._selection_history[name]
+        # pop
 
-        plotter = plotter_cls(m, initial_selection=selection)
+        kwargs_plot = kwargs.get(tabname, {})
+        kwargs_plot.setdefault("sizing_mode", "stretch_both")
+
+        sort_x_by = kwargs_plot.pop("sort_x_by", None)
+        sort_x_order = kwargs_plot.pop("sort_x_order", None)
+        sort_y_by = kwargs_plot.pop("sort_y_by", None)
+        sort_y_order = kwargs_plot.pop("sort_y_order", None)
+
+        plotter = plotter_cls(
+            m,
+            initial_selection=selection,
+            sort_x_by=sort_x_by,
+            sort_y_by=sort_y_by,
+            sort_x_order=sort_x_order,
+            sort_y_order=sort_y_order,
+        )
 
         def selection_callback(event):
             indices = plotter.source.selected.indices
@@ -626,8 +696,6 @@ class PlotSession:
         # would result in plotter.plot getting called as
         #   plotter.plot(y_axis_type="log")
         #
-        kwargs_plot = kwargs.get(tabname, {})
-        kwargs_plot.setdefault("sizing_mode", "stretch_both")
 
         p = plotter.plot(**kwargs_plot)
         p.on_event(SelectionGeometry, selection_callback)
@@ -677,26 +745,26 @@ class PlotSession:
             )
 
             p3 = self._add_subplot(
+                IntersectionBarChart, name, "intersection_bar_chart", **kwargs,
+            )
+            tab3 = Panel(
+                child=p3,
+                title="Intersection bar chart"
+                if self._set_mode
+                else "Combination bar chart",
+            )
+
+            p4 = self._add_subplot(
                 SetCardinalityHistogram,
                 name,
                 "set_cardinality_histogram",
                 **kwargs,
             )
-            tab3 = Panel(
-                child=p3,
+            tab4 = Panel(
+                child=p4,
                 title="Set cardinality histogram"
                 if self._set_mode
                 else "Value count histogram",
-            )
-
-            p4 = self._add_subplot(
-                IntersectionBarChart, name, "intersection_bar_chart", **kwargs,
-            )
-            tab4 = Panel(
-                child=p4,
-                title="Intersection bar chart"
-                if self._set_mode
-                else "Combination bar chart",
             )
 
             p5 = self._add_subplot(
