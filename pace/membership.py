@@ -48,7 +48,7 @@ class Membership:
             "intersection_id"
         )
         self._intersection_id_to_records = intersection_id_to_records
-        self._set_mode = set_mode  # pam
+        self._set_mode = set_mode
         if check:
             self._check()
 
@@ -260,7 +260,7 @@ class Membership:
         set_mode: bool = False,
     ):
         if set_mode:
-            columns = [col for col in df.columns if "category" in col]
+            columns = [col for col in df.columns if "category@" in col]
             grouped = df.groupby(columns)
         else:
             columns = df.columns
@@ -685,6 +685,7 @@ def set_cardinality_histogram_data(
         Contains the bin edges which are used t
         
     """
+
     data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
     _, edges = np.histogram(data_subset, bins=bins - 1)
@@ -788,3 +789,4 @@ def intersection_heatmap_data(
     if sort_x_by == "alphabetical":
         data = data.reindex(sorted(data.columns, reverse=reverse), axis=1)
     return data
+

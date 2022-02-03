@@ -60,6 +60,7 @@ class SetBarChart(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
         set_mode = data._set_mode
         self._data = data
@@ -156,10 +157,13 @@ class SetCardinalityHistogram(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
         set_mode = data._set_mode
         self._data = data
-        self._bins = 11
+        if not bins:
+            bins = 11
+        self._bins = bins
         (
             self._hist_data,
             self._column_data_source,
@@ -259,6 +263,7 @@ class IntersectionBarChart(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
         set_mode = data._set_mode
         self._data = data
@@ -338,7 +343,10 @@ class IntersectionCardinalityHistogram(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
+        if not bins:
+            bins = 10
         set_mode = data._set_mode
         self._data = data
         (
@@ -346,7 +354,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_cardinality_histogram_data(data,)
+        ) = membership.intersection_cardinality_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -428,15 +436,18 @@ class IntersectionDegreeHistogram(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
         set_mode = data._set_mode
+        if not bins:
+            bins = 10
         self._data = data
         (
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_degree_histogram_data(data)
+        ) = membership.intersection_degree_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -520,6 +531,7 @@ class IntersectionHeatmap(PlotBase):
         sort_y_by=None,
         sort_x_order=None,
         sort_y_order=None,
+        bins=None,
     ):
         set_mode = data._set_mode
         self._data = data
@@ -667,7 +679,6 @@ class PlotSession:
 
         m = self._selection_history.membership(parent)
         selection = self._selection_history[name]
-        # pop
 
         kwargs_plot = kwargs.get(tabname, {})
         kwargs_plot.setdefault("sizing_mode", "stretch_both")
@@ -676,6 +687,7 @@ class PlotSession:
         sort_x_order = kwargs_plot.pop("sort_x_order", None)
         sort_y_by = kwargs_plot.pop("sort_y_by", None)
         sort_y_order = kwargs_plot.pop("sort_y_order", None)
+        bins = kwargs_plot.pop("bins", None)
 
         plotter = plotter_cls(
             m,
@@ -684,6 +696,7 @@ class PlotSession:
             sort_y_by=sort_y_by,
             sort_x_order=sort_x_order,
             sort_y_order=sort_y_order,
+            bins=bins,
         )
 
         def selection_callback(event):
