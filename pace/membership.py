@@ -1,3 +1,4 @@
+from matplotlib.pyplot import axis
 import numpy as np
 import pandas as pd
 
@@ -47,7 +48,7 @@ class Membership:
             "intersection_id"
         )
         self._intersection_id_to_records = intersection_id_to_records
-        self._set_mode = set_mode  # pam
+        self._set_mode = set_mode
         if check:
             self._check()
 
@@ -259,7 +260,7 @@ class Membership:
         set_mode: bool = False,
     ):
         if set_mode:
-            columns = [col for col in df.columns if "category" in col]
+            columns = [col for col in df.columns if "category@" in col]
             grouped = df.groupby(columns)
         else:
             columns = df.columns
@@ -459,7 +460,9 @@ class Membership:
         )
 
 
-def intersection_bar_chart_data(m: Membership) -> pd.DataFrame:
+def intersection_bar_chart_data(
+    m: Membership, sort_x_by: str = None, sort_x_order: str = None,
+) -> pd.DataFrame:
     """ Returns data used to generate an IntersectionBarChart plot.
     
     For every unique set intersection the function counts the number of records 
@@ -469,6 +472,18 @@ def intersection_bar_chart_data(m: Membership) -> pd.DataFrame:
     ----------
     m: Membership
         Membership object
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "value": sorts the bars along the x-axis with ascending or descending
+          y-value as specified in `sort_x_order`
+        - "length": sorts the bars along the x-axis with ascending or descending
+          intersection length as specified in `sort_x_order`
+        - default: if none of the above is provided the bars are sorted 
+        with ascending y-values
+    sort_x_order: str
+        - "ascending" (default)
+        - "descending"
 
     Returns
     -------
@@ -476,15 +491,29 @@ def intersection_bar_chart_data(m: Membership) -> pd.DataFrame:
         DataFrame that contains the count of each set intersection.
 
     """
-    return (
-        m.count_intersections()
-        .sort_values("_count", ascending=False)
-        .reset_index()
-    )
+    data = m.count_intersections().copy()
+
+    # sort axes
+    if sort_x_order == "descending":
+        ascending = False
+
+    else:
+        ascending = True
+
+    if sort_x_by == "length":  # length of combination
+        cols = m.intersections().columns
+        data["_len"] = data.loc[:, cols].sum(axis=1)
+        data = data.sort_values(by="_len", ascending=ascending)
+    elif sort_x_by == "value":
+        data = data.sort_values("_count", ascending=ascending)
+    else:
+        data = data.sort_values("_count", ascending=True)
+
+    return data.reset_index()
 
 
 def intersection_cardinality_histogram_data(
-    m: Membership, bins: int = 10
+    m: Membership, bins: int = 10,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, np.array, int]:
     """Returns data used to generate an IntersectionCardinalityHistogram plot.
     
@@ -519,7 +548,6 @@ def intersection_cardinality_histogram_data(
     data.index.name = "intersection_id"
     _, edges = np.histogram(data["_count"], bins)
     bin_ids = np.fmin(np.digitize(data["_count"], edges), bins)
-
     data["_bin_id"] = bin_ids - 1  # to match indices return by bokeh tools
 
     # dict for plotting
@@ -573,7 +601,9 @@ def intersection_degree_histogram_data(
     return data, column_data_source, edges, bins
 
 
-def set_bar_chart_data(m: Membership) -> pd.DataFrame:
+def set_bar_chart_data(
+    m: Membership, sort_x_by=None, sort_x_order=None,
+) -> pd.DataFrame:
     """Returns data used to generate a SetBarChart plot.
     
     The function counts the number of records in each set (column) and the number
@@ -584,6 +614,18 @@ def set_bar_chart_data(m: Membership) -> pd.DataFrame:
     ----------
     m: Membership
         Membership object 
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "value": sorts the bars along the x-axis with ascending or descending
+          y-value as specified in `sort_x_order`
+        - "alphabetical": sorts the bars along the x-axis in alphabetical order
+          as specified in `sort_x_order`
+        - default: if none of the above is provided the bars are sorted 
+          in the order they appear in the dataset.
+    sort_x_order: str
+        - "ascending" (default)
+        - "descending"
 
     Returns
     -------
@@ -602,11 +644,24 @@ def set_bar_chart_data(m: Membership) -> pd.DataFrame:
             .reset_index(drop=True)
             .get(0, 0)
         ]
-    return pd.DataFrame({"_count": sets}, index=labels,)
+
+    data = pd.DataFrame({"_count": sets}, index=labels,)
+
+    # sort data if required by user
+    if sort_x_order == "descending":
+        ascending = False
+    else:
+        ascending = True
+    if sort_x_by == "alphabetical":
+        data = data.sort_index(ascending=ascending)
+    elif sort_x_by == "value":
+        data = data.sort_values(by="_count", ascending=ascending)
+
+    return data
 
 
 def set_cardinality_histogram_data(
-    m: Membership, bins: int = 11
+    m: Membership, bins: int = 11,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, np.array]:
     """Returns data used to generate an SetCardinalityHistogram plot.
     
@@ -630,6 +685,7 @@ def set_cardinality_histogram_data(
         Contains the bin edges which are used t
         
     """
+
     data = set_bar_chart_data(m)
     data_subset = data[data["_count"] != 0]
     _, edges = np.histogram(data_subset, bins=bins - 1)
@@ -638,6 +694,15 @@ def set_cardinality_histogram_data(
     data["_bin_id"] = 1
     data["_bin_id"].loc[data_subset.index] = bin_ids[:, 0]
 
+    # if (sort_x_by == "value") & ((sort_x_order == "descending")):
+    #     # sort bin ids
+    #     map_keys = [x + 1 for x in range(bins)]
+    #     map_vals = [x for x in reversed(map_keys)]
+    #     dict_mapping = dict(zip(map_keys, map_vals))
+    #     data["_bin_id"] = data["_bin_id"].map(dict_mapping)
+
+    #     # sort edges for histogram x-tick labels
+    #     edges = [x for x in reversed(edges)]
     # dict_data is for plotting
     keys = [x + 1 for x in range(bins)]
     vals = [data[data["_bin_id"] == x].shape[0] for x in keys]
@@ -645,7 +710,13 @@ def set_cardinality_histogram_data(
     return data, column_data_source, edges
 
 
-def intersection_heatmap_data(m: Membership) -> pd.DataFrame:
+def intersection_heatmap_data(
+    m: Membership,
+    sort_x_by=None,
+    sort_y_by=None,
+    sort_x_order=None,
+    sort_y_order=None,
+) -> pd.DataFrame:
     """Returns data used to generate an IntersectionHeatmap plot.
     
     Creates a matrix with dimensions unique set intersections x columns
@@ -661,6 +732,28 @@ def intersection_heatmap_data(m: Membership) -> pd.DataFrame:
     ----------
     m: Membership
         Membership object on which the plots are based.
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "alphabetical": sorts the fields along the x-axis in alphabetical order
+          as specified in `sort_x_order`
+        - default: if none of the above is provided the fields on the x-axis  
+          of the heatmap are sorted in the order they appear in the dataset.
+    sort_y_by: str
+        Name of the sort option for the y-axis.
+        Sort options are:
+        - "value": sorts the fields along the y-axis by the heatmap value with
+          the order as specified in `sort_x_order`
+        - "length": sorts the fields along the y-axis by the intersection length
+          with the order as specified in `sort_x_order`
+        - default: if none of the above is provided the intersections on the y-axis  
+          of the heatmap are sorted in the order they appear in the dataset.
+    sort_x_order: str
+        - "ascending" (default)
+        - "descending"
+    sort_y_order: str
+        - "ascending" (default)
+        - "descending"
 
     Returns
     -------
@@ -671,6 +764,29 @@ def intersection_heatmap_data(m: Membership) -> pd.DataFrame:
     counts = m.count_intersections().copy()  # don't modify original df
     if m._set_mode:
         counts["empty"] = m.empty_intersection()
-    return (
-        counts.astype(int).mul(counts["_count"], axis=0).drop("_count", axis=1)
-    )
+
+    data = counts.astype(int).mul(counts["_count"], axis=0)
+
+    # sort data if required by user
+    if sort_x_order == "descending":
+        reverse = True
+    else:
+        reverse = False
+
+    if sort_y_order == "descending":
+        ascending = False
+    else:
+        ascending = True
+
+    if sort_y_by == "value":
+        data = data.sort_values(by="_count", ascending=ascending)
+    data = data.drop("_count", axis=1)
+    if sort_y_by == "length":  # sort by combination length
+        data["_len"] = np.count_nonzero(m.intersections(), axis=1)
+        data = data.sort_values(by="_len", ascending=ascending).drop(
+            ["_len"], axis=1
+        )
+    if sort_x_by == "alphabetical":
+        data = data.reindex(sorted(data.columns, reverse=reverse), axis=1)
+    return data
+
