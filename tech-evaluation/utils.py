@@ -32,7 +32,7 @@ def generate_pattern(pattern, num_rows, num_cols, num_int, type="str"):
     return df
 
 
-def generate_monotone(num_rows, num_cols, num_int, type):
+def generate_monotone(num_rows, num_cols, num_int, data_type):
     """
     Generate a data frame that has columns of type 'object', and a monotone pattern of missing data
     
@@ -68,7 +68,7 @@ def generate_monotone(num_rows, num_cols, num_int, type):
             #         random.choices(string.ascii_letters + string.digits, k=8)
             #     )
             # ] * (num_cols - num_missing)
-            non_missing_values = [get_value(type)] * (num_cols - num_missing)
+            non_missing_values = [get_value(data_type)] * (num_cols - num_missing)
             rows.append(non_missing_values + [np.nan] * num_missing)
 
     cols = ["v" + str(i) for i in range(num_cols)]
@@ -77,7 +77,7 @@ def generate_monotone(num_rows, num_cols, num_int, type):
     return df
 
 
-def generate_general(num_rows, num_cols, num_int, type):
+def generate_general(num_rows, num_cols, num_int, data_type):
     """
     Generate a data frame that has columns of type 'object', and a general pattern of missing data.
     
@@ -114,18 +114,28 @@ def generate_general(num_rows, num_cols, num_int, type):
     return pd.DataFrame(rows, columns=cols, dtype=object)
 
 
-def get_value(type="str"):
-    if type == "str":
+def get_value(data_type="str"):
+    if data_type == "str":
         return "".join(
             random.choices(string.ascii_letters + string.digits, k=8)
         )
-    elif type == "float":
+    elif data_type == "float":
         return np.random.random()
     else:
         return -999
 
 
-def eval_data(df, package, pattern, num_rows, num_cols, num_int, type):
+def compute_missingness(df, package):
+    """Compute missingness from data based on package provided.
+    """
+    if package == "upset":
+        data_missing = upsetplot.from_indicators(indicators=pd.isna, data=df)
+    elif package == "pace":
+        data_missing = Membership.from_data_frame(df)
+    return data_missing
+
+
+def eval_data(df, package):
     """
     Evaluates the performance of UpSet by timing the 
     missingness computation and the visualisation of the provided data.
@@ -136,14 +146,6 @@ def eval_data(df, package, pattern, num_rows, num_cols, num_int, type):
         data frame
     package : str
         name of the evaluated visualisation package 
-    pattern : str
-        name of the pattern used to generate data
-    num_rows : int
-        number of rows in the dataset (records)
-    num_cols : int
-        number of columns in the dataset
-    type : str
-        The data type of the records
 
     Returns 
     -------
@@ -152,69 +154,17 @@ def eval_data(df, package, pattern, num_rows, num_cols, num_int, type):
     
     """
     try:
-        results = [
-            [
-                package,
-                pattern,
-                num_rows,
-                num_cols,
-                num_int,
-                type,
-                "START",
-                None,
-                psutil.virtual_memory(),
-            ]
-        ]
-        # compute missingness
-        start_time = datetime.now()
-        if package == "upset":
-            data_missing = upsetplot.from_indicators(
-                indicators=pd.isna, data=df
-            )
-        elif package == "pace":
-            data_missing = Membership.from_data_frame(df)
-        time2 = datetime.now()
-        td = time2 - start_time
-        results.append(
-            [
-                package,
-                pattern,
-                num_rows,
-                num_cols,
-                num_int,
-                type,
-                "COMPUTE",
-                td.seconds + td.microseconds / 1e6,
-                psutil.virtual_memory(),
-            ]
-        )
-        # visualisations
-        time3 = datetime.now()
+        data_missing = compute_missingness(df, package)
+
         # TODO: add that we write plot to png or some other file for timing
         if package == "upset":
             upsetplot.plot(data_missing, show_counts=True)
             # plt.show(block=False)
-            time4 = datetime.now()
-            plt.savefig("tmp.png")
+            plt.savefig("tmp.pdf")
+            # time4 = datetime.now()
         elif package == "pace":
             session = PlotSession(df)
             session.add_plot("a")
-            # TODO: how can we access plot?
 
-        td = time4 - time3
-        results.append(
-            [
-                package,
-                pattern,
-                num_rows,
-                num_cols,
-                num_int,
-                type,
-                "VISUALIZE",
-                td.seconds + td.microseconds / 1e6,
-                psutil.virtual_memory(),
-            ]
-        )
-        return results
     except:
         raise

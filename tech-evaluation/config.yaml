@@ -3,22 +3,20 @@
 dataset:
   num_rows:
     - 10
-    - 100
   num_cols:
     - 5
-    - 10
   intersections:
     - 10
   datatype:
     - str
-    - float
+    # - float
   
 seed:
     - 92846593
 
 patterns:
   - monotone
-  - general
+  # - general
 
 output:
   filename: tmp_tech_eval_results
