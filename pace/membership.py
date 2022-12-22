@@ -327,7 +327,9 @@ class Membership:
         mship_pivot = (
             mship.pivot(columns=["value"])
             .droplevel(0, axis=1)
-            .drop("", axis=1)  # remove column for the explicitly 'empty' label
+            # remove column for the explicitly 'empty' label
+            # (errors="ignore" so no failure if it does not exist)
+            .drop("", axis=1, errors="ignore")
             .rename_axis(None, axis=1)
             # Prepend "category@" to the label to make the column labels
             # consistent with the constructor(s) from 'Format 1' csv files
