@@ -5,8 +5,6 @@ python:
 
 install:
   - pip install --upgrade pip
-  # tomli missing poetry dependency?
-  - pip install tomli
   - pip install poetry
   - pip install papermill
   - poetry update
