@@ -5,10 +5,10 @@ python:
 
 install:
   - pip install --upgrade pip
-  - pip install poetry
-  - pip install papermill
   # tomli missing poetry dependency?
   - pip install tomli
+  - pip install poetry
+  - pip install papermill
   - poetry update
   - poetry install -E all
 
