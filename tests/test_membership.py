@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from pace.membership import Membership, Col
 
 
@@ -11,6 +12,15 @@ def example_df():
             "b": [1, pd.NA, 1, pd.NA, 1, pd.NA, 1],
         }
     )
+
+
+@pytest.fixture
+def simpsons_format2():
+    test_source_path = Path(__file__).resolve()
+    test_source_dir = test_source_path.parent
+    dataset_dir = test_source_dir.parent / "examples" / "datasets"
+
+    return pd.read_csv(dataset_dir / "simpsons - Format 2.csv")
 
 
 def test_membership_construction():
@@ -52,6 +62,21 @@ def test_membership_from_df():
         .sort_index()
         .equals(df.isnull())
     )
+
+
+def test_membership_set_mode_no_empty(simpsons_format2):
+    """Check construction (no exceptions) of Membership in set mode from
+    compressed format.
+
+    Regression of GH #77: failure when no element is a member of none
+    of the sets.
+    """
+
+    # First four rows have no 'empty' members
+    df = simpsons_format2[0:4]
+
+    # No exception
+    Membership.from_membership_data_frame(df)
 
 
 def test_membership_match():
