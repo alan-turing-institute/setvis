@@ -135,6 +135,14 @@ class SelectionHistory:
     by passing a dictionary of names to ``SubSelection`` instances as
     `selections`.
 
+    Parameters
+    ----------
+    membership : Membership
+        The initial ``Membership`` object
+
+    selections : Optional[Dict[str, SubSelection]] = None
+        Optionally, a dictionary containing the selection history
+
     """
 
     def __init__(
@@ -142,17 +150,6 @@ class SelectionHistory:
         membership: Membership,
         selections: Optional[Dict[str, SubSelection]] = None,
     ):
-        """Initialize selection history
-
-        Parameters
-        ----------
-        membership : Membership
-            The initial ``Membership`` object
-
-        selections : Optional[Dict[str, SubSelection]] = None
-            Optionally, a dictionary containing the selection history
-        
-        """
         self._membership = membership
         self._selections = (
             _parse_selections(selections) if selections is not None else {}
