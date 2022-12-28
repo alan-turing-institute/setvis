@@ -535,9 +535,38 @@ class Membership:
         )
 
     @classmethod
-    def from_csv(cls, filepath_or_buffer, *args, **kwargs):
-        df = pd.read_csv(filepath_or_buffer, *args, **kwargs)
-        return cls.from_data_frame(df)
+    def from_csv(
+        cls, filepath_or_buffer, read_csv_args=None, **kwargs
+    ) -> "Membership":
+        """Construct a Membership object from a csv file
+
+        The data is first loading into a pandas dataframe and passed to
+        :func:`~Membership.from_data_frame`.
+
+        Parameters
+        ----------
+
+        filepath_or_buffer: file-like
+          The file-like to load with :func:`pandas.read_csv`
+
+        read_csv_args: Dict
+          A dictionary of keyword arguments forwarded to :func:`pandas.read_csv`
+
+        **kwargs
+          All other arguments are forwarded to :func:`~Membership.from_data_frame`
+
+        See also
+        --------
+        from_data_frame
+          Load data from a data frame
+
+        """
+
+        if read_csv_args is None:
+            read_csv_args = {}
+
+        df = pd.read_csv(filepath_or_buffer, **read_csv_args)
+        return cls.from_data_frame(df, **kwargs)
 
     @classmethod
     def from_membership_data_frame(
@@ -654,9 +683,37 @@ class Membership:
         )
 
     @classmethod
-    def from_membership_csv(cls, filepath_or_buffer, *args, **kwargs):
-        df = pd.read_csv(filepath_or_buffer, **kwargs)
-        return cls.from_membership_data_frame(df, *args, **kwargs)
+    def from_membership_csv(
+        cls, filepath_or_buffer, read_csv_args=None, **kwargs
+    ) -> "Membership":
+        """Construct a Membership object from a 'membership' csv file
+
+        The data is first loading into a pandas dataframe and passed to
+        :func:`~Membership.from_membership_data_frame`.
+
+        Parameters
+        ----------
+
+        filepath_or_buffer: file-like
+          The file-like to load with :func:`pandas.read_csv`
+
+        read_csv_args: Dict
+          A dictionary of keyword arguments forwarded to :func:`pandas.read_csv`
+
+        **kwargs
+          All other keyword arguments are forwarded to
+          :func:`~Membership.from_membership_data_frame`
+
+        See also
+        --------
+        from_membership_data_frame
+        """
+
+        if read_csv_args is None:
+            read_csv_args = {}
+
+        df = pd.read_csv(filepath_or_buffer, **read_csv_args)
+        return cls.from_membership_data_frame(df, **kwargs)
 
     @classmethod
     def from_postgres(
