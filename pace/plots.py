@@ -117,7 +117,7 @@ Extended description ...""",
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to 
+        """ Function to map the interactive selection made in the plot to
             a ``Selection`` object.
 
             Parameters
@@ -128,7 +128,7 @@ Extended description ...""",
             Returns
             -------
             Selection object
-        
+
         """
         col_labels = self._data.columns()
 
@@ -347,6 +347,7 @@ class IntersectionCardinalityHistogram(PlotBase):
     ):
         if not bins:
             bins = 10
+
         set_mode = data._set_mode
         self._data = data
         (
