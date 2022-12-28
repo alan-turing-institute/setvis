@@ -117,7 +117,7 @@ Extended description ...""",
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to 
+        """ Function to map the interactive selection made in the plot to
             a ``Selection`` object.
 
             Parameters
@@ -128,7 +128,7 @@ Extended description ...""",
             Returns
             -------
             Selection object
-        
+
         """
         col_labels = self._data.columns()
 
@@ -347,6 +347,7 @@ class IntersectionCardinalityHistogram(PlotBase):
     ):
         if not bins:
             bins = 10
+
         set_mode = data._set_mode
         self._data = data
         (
@@ -723,6 +724,68 @@ class PlotSession:
         html_display_link=True,
         **kwargs,
     ):
+        """Add a new plot
+
+        Renders a set of interactive Bokeh plots in a tabbed layout
+        (see the options below controlling how these are displayed).
+
+        The plots have different titles, depending on the mode ('set
+        mode' or 'missingness mode', see :py:class:`PlotSession`).
+        The included plots are shown in the table below.  More detail
+        about the plot can be found under the documentation for its
+        plot class.
+
+        ====================================  ============================  ============================================
+        Set-mode plot                         Missingness-mode plot         Plot class
+        ====================================  ============================  ============================================
+        Set bar chart                         Value bar chart               :py:class:`SetBarChart`
+        Intersection heatmap                  Combination heatmap           :py:class:`IntersectionHeatMap`
+        Set cardinality histogram             Value count histogram         :py:class:`SetCardinalityHistogram`
+        Intersection bar chart                Combination bar chart         :py:class:`IntersectionBarChart`
+        Intersection cardinality histogram    Combination count histogram   :py:class:`IntersectionCardinalityHistogram`
+        Intersection degree histogram         Combination length histogram  :py:class:`IntersectionDegreeHistogram`
+        ====================================  ============================  ============================================
+
+        Parameters
+        ----------
+        name : str
+            The name of the plot.  This name is used to refer to any
+            selection made in the plot.
+        based_on : str or None
+            The data to plot is taken from this selection (it is
+            'based on' this selection).  Any selection made in *this*
+            plot is a refinement of the `based_on` selection.
+        notebook : bool
+            Should the plot be displayed inline in the notebook?  A
+            value of `False` starts and returns a Bokeh server for
+            rendering the plots.
+        html_display_link : bool
+            Display an inline notebook link to the Bokeh server? Only
+            used when `ok` is `False`, and when running in a
+            notebook.
+        **kwargs : dict
+            Additional keyword arguments for each plot.
+
+            Each keyword argument should be a dictionary, whose
+            contents are used as keyword arguments for the `plot`
+            method of the class for the corresponding plot.
+
+            The arguments that are forwarded are listed below.  They
+            have 'set mode' names (even in missingness mode).
+
+            - `set_bar_chart`
+            - `intersection_heatmap`
+            - `set_cardinality_histogram`
+            - `intersection_bar_chart`
+            - `intersection_cardinality_histogram`
+            - `intersection_degree_histogram`
+
+            See the documentation for the individual plot classes for
+            the accepted dictionary keys (any that are unknown are
+            forwarded to :py:func:`bokeh.plotting.figure`).
+
+        """
+
         ## Since this function starts a Bokeh server, stop various
         ## INFO and WARN messages being displayed in the notebook
         if self._verbose:
@@ -896,7 +959,10 @@ class PlotSession:
 
 
 class NPIntEncoder(json.JSONEncoder):
-    """JSON encoder for numpy integer dtypes"""
+    """JSON encoder for numpy integer dtypes
+
+    :meta private:
+    """
 
     def default(self, obj):
         if np.issubdtype(obj, np.integer):
