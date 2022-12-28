@@ -1,10 +1,12 @@
-from matplotlib.pyplot import axis
+import logging
+
+from typing import Sequence, Callable, Optional, Any, List, Tuple
+
 import numpy as np
 import pandas as pd
 
-from typing import Sequence, Callable, Optional, Any, List, Tuple
 from .setexpression import Set, SetExpr
-import logging
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
