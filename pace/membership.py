@@ -512,7 +512,7 @@ class Membership:
         """
         if set_mode:
             columns = [col for col in df.columns if "category@" in col]
-            grouped = df.groupby(columns)
+            grouped = df.astype(bool).groupby(columns)
         else:
             columns = df.columns
             grouped = is_missing(df).groupby(list(df))
