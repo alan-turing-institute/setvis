@@ -959,7 +959,10 @@ class PlotSession:
 
 
 class NPIntEncoder(json.JSONEncoder):
-    """JSON encoder for numpy integer dtypes"""
+    """JSON encoder for numpy integer dtypes
+
+    :meta private:
+    """
 
     def default(self, obj):
         if np.issubdtype(obj, np.integer):
