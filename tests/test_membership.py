@@ -5,6 +5,7 @@ from pathlib import Path
 from pace.membership import Membership, Col
 
 
+@pytest.fixture
 def example_df():
     return pd.DataFrame(
         data={
@@ -46,21 +47,19 @@ def test_membership_construction():
         Membership(intersection_id_to_columns=c2, intersection_id_to_records=r2)
 
 
-def test_membership_from_df():
+def test_membership_from_df(example_df):
     """
     Check construction of Membership from a pandas data frame, and
     that the original dataframe missingness can be reconstructed.
     """
 
-    df = example_df()
-
-    m = Membership.from_data_frame(df)
+    m = Membership.from_data_frame(example_df)
 
     assert (
         m._intersection_id_to_records.join(m._intersection_id_to_columns)
         .set_index("_record_id")
         .sort_index()
-        .equals(df.isnull())
+        .equals(example_df.isnull())
     )
 
 
@@ -79,9 +78,8 @@ def test_membership_set_mode_no_empty(simpsons_format2):
     Membership.from_membership_data_frame(df)
 
 
-def test_membership_match():
-    df = example_df()
-    m = Membership.from_data_frame(df)
+def test_membership_match(example_df):
+    m = Membership.from_data_frame(example_df)
 
     expected1 = np.array([1, 2, 6])
 
