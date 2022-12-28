@@ -127,9 +127,9 @@ class SelectionHistory:
     * a list of items to exclude from the parent.
 
     These named selections form a tree.  The root of the tree is the
-    initial ``Membership`` instance, passed to the constructor as
-    `membership`, and may be referred to be the special name,
-    ``None``.
+    initial :class:`~pace.membership.Membership` instance, passed to
+    the constructor as `membership`, and may be referred to be the
+    special name, ``None``.
 
     An initial tree of selections may be specified in the constructor
     by passing a dictionary of names to ``SubSelection`` instances as
@@ -138,7 +138,7 @@ class SelectionHistory:
     Parameters
     ----------
     membership : Membership
-        The initial ``Membership`` object
+        The initial :class:`~pace.membership.Membership` object
 
     selections : Optional[Dict[str, SubSelection]] = None
         Optionally, a dictionary containing the selection history
