@@ -317,8 +317,8 @@ class Membership:
 
     def _compute_set(self, intersection_spec: SetExpr):
         """Evaluate the SetExpr :param:`intersection_spec` for the current instance"""
-        return intersection_spec.run_with(
-            self._intersection_id_to_columns.__getitem__
+        return intersection_spec.evaluate(
+            lookup_name=self._intersection_id_to_columns.__getitem__
         )
 
     def matching_intersections(self, intersection_spec: SetExpr) -> np.ndarray:
