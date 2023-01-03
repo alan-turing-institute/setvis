@@ -10,12 +10,11 @@ PACE is a python package for exploring and visualizing data
 missingness (that is, the presence, number and pattern of `missing
 data <https://en.wikipedia.org/wiki/Missing_data>`_ in a dataset).
 
-It can also be used to visualize :doc:`set membership <set_mode>`,
-of which data missingness is a special case.
+It can also be used to visualize set membership of which data
+missingness is a special case.
 
-It is designed to work particularly well when used `interactively
-<interactive_use.rst>`_ from a notebook, but can also be used
-non-interactively.
+It is designed to work particularly well when used interactively from
+a notebook, but can also be used non-interactively.
 
 At the moment, PACE can load data from `pandas
 <https://pandas.pydata.org/>`_ dataframes, csv files, and also
