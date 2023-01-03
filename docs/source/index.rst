@@ -34,7 +34,6 @@ Contents
    installation
    overview
    tutorials
-   set_mode
    api_reference
 
 Examples
