@@ -11,7 +11,7 @@ from bokeh.models import (
     HelpTool,
 )
 from bokeh.palettes import Oranges256
-from bokeh.transform import transform, linear_cmap
+from bokeh.transform import linear_cmap
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
@@ -21,6 +21,7 @@ import numpy as np
 import logging
 import base64
 from weakref import WeakValueDictionary
+
 from IPython.display import Javascript, display
 
 from typing import Any, Sequence, List, Dict, Tuple
@@ -54,18 +55,21 @@ class PlotBase:
 class SetBarChart(PlotBase):
     """A class used to represent a set bar chart.
 
-    This class is used to represent the data of a Membership object in form of a set bar chart,
-    where each bar represents a set and indicates the number of records that are part of this set.
+    This class is used to represent the data of a Membership object
+    in form of a set bar chart, where each bar represents a set and indicates
+    the number of records that are part of this set.
 
-    Only the items in the initial selection of the Membership object are included in
-    the set bar chart. If no selection is specified, all items are included.
+    Only the items in the initial selection of the Membership object are
+    included in the set bar chart. If no selection is specified, all items
+    are included.
 
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the set bar chart
+        initial selection of items in the membership object to be included in
+        the set bar chart
     sort_x_by: str
         Name of the sort option for the x-axis.
         Sort options are:
@@ -78,7 +82,7 @@ class SetBarChart(PlotBase):
     sort_x_order: str
         Sorting order for the x-axis. Options are:
         - "ascending"
-        - "descending"  
+        - "descending"
     """
 
     def __init__(
@@ -152,7 +156,7 @@ Extended description ...""",
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to 
+        """Function to map the interactive selection made in the plot to
         a ``Selection`` object.
 
         Parameters
@@ -164,7 +168,7 @@ Extended description ...""",
         -------
         Selection
             items in Membership object that correspond to the plot selection
-        
+
         """
         col_labels = self._data.columns()
 
@@ -185,7 +189,8 @@ Extended description ...""",
         Returns
         -------
         List[int]
-            a list that contains the indices of those bars in the set bar chart that correspond to the items in the Selection 
+            a list that contains the indices of those bars in the set bar
+            chart that correspond to the items in the Selection
         """
         col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
@@ -199,20 +204,23 @@ Extended description ...""",
 class SetCardinalityHistogram(PlotBase):
     """A class used to represent a set cardinality histogram.
 
-    This class is used to represent the data of a Membership object in form of a set cardinality histogram,
-    which bins the number of elements in a set. The first bin only contains the sets with no member elements. 
+    This class is used to represent the data of a Membership object in form of
+    a set cardinality histogram, which bins the number of elements in a set.
+    The first bin only contains the sets with no member elements.
 
-    Only the items in the initial selection of the Membership object are included in
-    the histogram. If no selection is specified, all items are included.
-    
+    Only the items in the initial selection of the Membership object are
+    included in the histogram. If no selection is specified, all items are
+    included.
+
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the histogram
-    bins : int (TODO: default bins)
-        number of histogram bins 
+        initial selection of items in the membership object to be included
+        in the histogram
+    bins : int
+        number of histogram bins
     """
 
     def __init__(
@@ -234,7 +242,10 @@ class SetCardinalityHistogram(PlotBase):
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = membership.set_cardinality_histogram_data(data, bins=self._bins,)
+        ) = membership.set_cardinality_histogram_data(
+            data,
+            bins=self._bins,
+        )
         self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
@@ -291,7 +302,7 @@ class SetCardinalityHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to
+        """Function to map the interactive selection made in the plot to
         a ``Selection`` object.
 
         Parameters
@@ -314,7 +325,8 @@ class SetCardinalityHistogram(PlotBase):
         return Selection(columns=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the histogram
+        """Maps a ``Selection`` to the corresponding bin indices of the
+        histogram.
 
         Parameters
         ----------
@@ -324,7 +336,8 @@ class SetCardinalityHistogram(PlotBase):
         Returns
         -------
         List[int]
-            a list that contains the indices of those bins in the histogram that correspond to the items in the Selection
+            a list that contains the indices of those bins in the histogram
+            that correspond to the items in the Selection
         """
         col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
@@ -345,7 +358,8 @@ class SetCardinalityHistogram(PlotBase):
     def _get_xtick_labels(self):
         """Returns the labels for the x-axis ticks of the histogram.
 
-        Note that the first bin is a separate bin which only contains sets without members.
+        Note that the first bin is a separate bin which only contains sets
+        without members.
 
         Returns
         -------
@@ -363,18 +377,21 @@ class SetCardinalityHistogram(PlotBase):
 
 class IntersectionBarChart(PlotBase):
     """A class used to represent a intersection bar chart.
-    This class is used to represent the data of a Membership object in form of an intersection bar chart,
-    where each bar represents a unique set intersection and the number elements associated with this set intersection.
+    This class is used to represent the data of a Membership object in form
+    of an intersection bar chart, where each bar represents a unique set
+    intersection and the number elements associated with this set intersection.
 
-    Only the items in the initial selection of the Membership object are included in
-    the intersection bar chart. If no selection is specified, all items are included.
+    Only the items in the initial selection of the Membership object are
+    included in the intersection bar chart. If no selection is specified,
+    all items are included.
 
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the set bar chart
+        initial selection of items in the membership object to be included in
+        the set bar chart
     sort_x_by: str
         Name of the sort option for the x-axis.
         Sort options are:
@@ -403,7 +420,9 @@ class IntersectionBarChart(PlotBase):
         set_mode = data._set_mode
         self._data = data
         self._bar_data = membership.intersection_bar_chart_data(
-            data, sort_x_by, sort_x_order,
+            data,
+            sort_x_by,
+            sort_x_order,
         )
         self.source = ColumnDataSource(self._bar_data)
 
@@ -453,7 +472,7 @@ class IntersectionBarChart(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to 
+        """Function to map the interactive selection made in the plot to
         a ``Selection`` object.
 
         Parameters
@@ -481,7 +500,8 @@ class IntersectionBarChart(PlotBase):
         Returns
         -------
         List[int]
-            a list that contains the indices of those bars in the bar chart that correspond to the items in the Selection 
+            a list that contains the indices of those bars in the bar chart
+            that correspond to the items in the Selection
         """
         intersection_ids_tuple = np.where(
             np.in1d(
@@ -503,18 +523,21 @@ class IntersectionBarChart(PlotBase):
 class IntersectionCardinalityHistogram(PlotBase):
     """A class used to represent an intersection cardinality histogram.
 
-    This class is used to represent the data of a Membership object in form of a intersection
-    cardinality histogram, which bins the number of elements for each set intersection. TODO
+    This class is used to represent the data of a Membership object in form of
+    a intersection cardinality histogram, which bins the number of elements
+    for each set intersection.
 
-    Only the items in the initial selection of the Membership object are included in
-    the intersection cardinality histogram. If no selection is specified, all items are included.
+    Only the items in the initial selection of the Membership object are
+    included in the intersection cardinality histogram. If no selection is
+    specified, all items are included.
 
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the intersection cardinality histogram
+        initial selection of items in the membership object to be included in
+        the intersection cardinality histogram
     bins : int
 
     """
@@ -590,7 +613,7 @@ class IntersectionCardinalityHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to 
+        """Function to map the interactive selection made in the plot to
         a ``Selection`` object.
 
         Parameters
@@ -610,7 +633,8 @@ class IntersectionCardinalityHistogram(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the histogram
+        """Maps a ``Selection`` to the corresponding bin indices of the
+        histogram
 
         Parameters
         ----------
@@ -620,7 +644,8 @@ class IntersectionCardinalityHistogram(PlotBase):
         Returns
         -------
         List[int]
-            a list that contains the indices of those bins in the histogram that correspond to the items in the Selection
+            a list that contains the indices of those bins in the histogram
+            that correspond to the items in the Selection
         """
         intersection_ids_tuple = np.where(
             np.in1d(
@@ -652,18 +677,21 @@ class IntersectionCardinalityHistogram(PlotBase):
 class IntersectionDegreeHistogram(PlotBase):
     """A class used to represent a intersection degree histogram.
 
-    This class is used to represent the data of a Membership object in form of an intersection degree histogram,
-    which bins the number of sets that form a set intersection.
+    This class is used to represent the data of a Membership object in form of
+    an intersection degree histogram, which bins the number of sets that form
+    a set intersection.
 
-    Only the items in the initial selection of the Membership object are included in
-    the intersection degree histogram. If no selection is specified, all items are included.
+    Only the items in the initial selection of the Membership object are
+    included in the intersection degree histogram. If no selection is
+    specified, all items are included.
 
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the histogram
+        initial selection of items in the membership object to be included in
+        the histogram
     bins : int
         number of histogram bins
     """
@@ -741,7 +769,7 @@ class IntersectionDegreeHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to 
+        """Function to map the interactive selection made in the plot to
         a ``Selection`` object.
 
         Parameters
@@ -761,7 +789,8 @@ class IntersectionDegreeHistogram(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the histogram
+        """Maps a ``Selection`` to the corresponding bin indices of the
+        histogram
 
         Parameters
         ----------
@@ -771,7 +800,8 @@ class IntersectionDegreeHistogram(PlotBase):
         Returns
         -------
         List[int]
-            a list that contains the indices of those bins in the histogram that correspond to the items in the Selection
+            a list that contains the indices of those bins in the histogram
+            that correspond to the items in the Selection
         """
         intersection_ids_tuple = np.where(
             np.in1d(
@@ -790,7 +820,8 @@ class IntersectionDegreeHistogram(PlotBase):
         Returns
         -------
         dict
-            a dictionary that maps the tick position on the x-axis to the labels
+            a dictionary that maps the tick position on the x-axis to the
+            labels
         """
         keys = [str(x - 0.5) for x in range(self._bins)]
         vals = [
@@ -801,37 +832,42 @@ class IntersectionDegreeHistogram(PlotBase):
 
 
 class IntersectionHeatmap(PlotBase):
-    """A class used to represent an intersection heatmap. 
+    """A class used to represent an intersection heatmap.
 
-    This class is used to represent the data of a Membership object in form of an intersection heatmap,
-    which displays a matrix of sets on the x-axis and the set intersections on the y-axis. The number of
-    elements that are associated with a set intersection is encoded in the colour map.
+    This class is used to represent the data of a Membership object in form of
+    an intersection heatmap, which displays a matrix of sets on the x-axis and
+    the set intersections on the y-axis.
+    The number of elements that are associated with a set intersection is
+    encoded in the colour map.
 
-    Only the items in the initial selection of the Membership object are included in
-    the heatmap. If no selection is specified, all items are included.
+    Only the items in the initial selection of the Membership object are
+    included in the heatmap. If no selection is specified, all items are
+    included.
 
     Parameters
     ----------
     data : Membership
         a :class:`~pace.membership.Membership` object
     initial_selection : Selection
-        initial selection of items in the membership object to be included in the set bar chart
+        initial selection of items in the membership object to be included in
+        the set bar chart
     sort_x_by: str
         Name of the sort option for the x-axis.
         Sort options are:
-        - "alphabetical": sorts the fields along the x-axis in alphabetical order
-          as specified in `sort_x_order`
-        - default: if none of the above is provided the fields on the x-axis  
+        - "alphabetical": sorts the fields along the x-axis in alphabetical
+          order as specified in `sort_x_order`
+        - default: if none of the above is provided the fields on the x-axis
           of the heatmap are sorted in the order they appear in the dataset.
     sort_y_by: str
         Name of the sort option for the y-axis.
         Sort options are:
         - "value": sorts the fields along the y-axis by the heatmap value with
           the order as specified in `sort_x_order`
-        - "length": sorts the fields along the y-axis by the intersection length
-          with the order as specified in `sort_x_order`
-        - default: if none of the above is provided the intersections on the y-axis  
-          of the heatmap are sorted in the order they appear in the dataset.
+        - "length": sorts the fields along the y-axis by the intersection
+          length with the order as specified in `sort_x_order`
+        - default: if none of the above is provided the intersections on the
+          y-axis of the heatmap are sorted in the order they appear in the
+          dataset.
     sort_x_order: str
         - "ascending" (default)
         - "descending"
@@ -854,14 +890,19 @@ class IntersectionHeatmap(PlotBase):
         self._data = data
 
         heatmap_data = membership.intersection_heatmap_data(
-            data, sort_x_by, sort_y_by, sort_x_order, sort_y_order,
+            data,
+            sort_x_by,
+            sort_y_by,
+            sort_x_order,
+            sort_y_order,
         )
         heatmap_data["intersection_id_str"] = heatmap_data.index.values.astype(
             str
         )
         heatmap_data = heatmap_data.set_index("intersection_id_str")
         heatmap_data_long = pd.melt(
-            heatmap_data.reset_index(), id_vars=["intersection_id_str"],
+            heatmap_data.reset_index(),
+            id_vars=["intersection_id_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
 
@@ -929,7 +970,8 @@ class IntersectionHeatmap(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to a ``Selection`` object.
+        """Function to map the interactive selection made in the plot to a
+        ``Selection`` object.
 
         Parameters
         ----------
@@ -939,7 +981,8 @@ class IntersectionHeatmap(PlotBase):
         Returns
         -------
         Selection
-            items in Membership object that correspond to the intersections selected in the plot
+            items in Membership object that correspond to the intersections
+            selected in the plot
         """
         n_intersections = len(self._data.intersections())
         intersection_id = self._data.intersections().index.values
@@ -949,7 +992,8 @@ class IntersectionHeatmap(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding cell indices of the heatmap
+        """Maps a ``Selection`` to the corresponding cell indices of the
+        heatmap
 
         Parameters
         ----------
@@ -959,7 +1003,8 @@ class IntersectionHeatmap(PlotBase):
         Returns
         -------
         List[int]
-            a list that contains the indices of those cells in the heatmap that correspond to the items in the Selection 
+            a list that contains the indices of those cells in the heatmap
+            that correspond to the items in the Selection
         """
         n_columns = len(self._data.columns())
         n_intersections = len(self._data.intersections())
@@ -1095,7 +1140,10 @@ class PlotSession:
             )
 
             p2 = self._add_subplot(
-                IntersectionHeatmap, name, "intersection_heatmap", **kwargs,
+                IntersectionHeatmap,
+                name,
+                "intersection_heatmap",
+                **kwargs,
             )
             tab2 = Panel(
                 child=p2,
@@ -1105,7 +1153,10 @@ class PlotSession:
             )
 
             p3 = self._add_subplot(
-                IntersectionBarChart, name, "intersection_bar_chart", **kwargs,
+                IntersectionBarChart,
+                name,
+                "intersection_bar_chart",
+                **kwargs,
             )
             tab3 = Panel(
                 child=p3,
