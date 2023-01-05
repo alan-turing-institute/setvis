@@ -133,6 +133,7 @@ Extended description ...""",
         Returns
         -------
         bokeh.plotting.Figure
+            bar chart plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -273,7 +274,7 @@ class SetCardinalityHistogram(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
-            _description_
+            histogram plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -337,7 +338,7 @@ class SetCardinalityHistogram(PlotBase):
         -------
         List[int]
             a list that contains the indices of those bins in the histogram
-            that correspond to the items in the Selection
+            that correspond to the items in the selection
         """
         col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
@@ -358,7 +359,7 @@ class SetCardinalityHistogram(PlotBase):
     def _get_xtick_labels(self):
         """Returns the labels for the x-axis ticks of the histogram.
 
-        Note that the first bin is a separate bin which only contains sets
+        Note that the first bin is a special case and only contains sets
         without members.
 
         Returns
@@ -447,6 +448,7 @@ class IntersectionBarChart(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
+            bar chart plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -589,6 +591,7 @@ class IntersectionCardinalityHistogram(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
+            histogram plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -745,6 +748,7 @@ class IntersectionDegreeHistogram(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
+            histogram plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -931,6 +935,7 @@ class IntersectionHeatmap(PlotBase):
         Returns
         -------
         bokeh.plotting.Figure
+            heatmap plot
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -1031,9 +1036,27 @@ class PlotSession:
     """An interactive plotting session in a Jupyter notebook
 
     A session contains a sequence of named selections, each with a few
-    corresponding Bokeh plots (tabs in a tabbed layout).  New
+    corresponding Bokeh plots (tabs in a tabbed layout). New
     selections can be made interactively from the plots, and then
     other plots added.
+
+    It is possible to save a session, i.e., the user-made interactive
+    selections in every plot to a file, and load it to restore the state
+    of the session.
+
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        contains the dataset
+    session_file : str
+        file containing the interactive selections of a previously saved
+        session, by default None
+    set_mode : bool
+        whether to operate in set mode (True) or missingness mode (False),
+        by default False
+    verbose : bool
+        whether to produce verbose logging output, by default False
 
     """
 
@@ -1067,6 +1090,29 @@ class PlotSession:
             self._active_tabs = j["active_tabs"]
 
     def _add_subplot(self, plotter_cls, name, tabname, **kwargs):
+        """Creates a new subplot to be added to tabbed layout
+
+        Parameters
+        ----------
+        plotter_cls : class(PlotBase)
+            class of the subplot object to be added.
+            Options are:
+            - SetBarChart
+            - IntersectionHeatmap
+            - SetCardinalityHistogram
+            - IntersectionBarChart
+            - IntersectionCardinalityHistogram
+            - IntersectionDegreeHistogram
+        name : str
+            name of plot to which subplot is added
+        tabname : str
+            name of the tab
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            plot to be added to tabbed layout
+        """
         parent = self._selection_history.parent(name)
 
         m = self._selection_history.membership(parent)
@@ -1115,6 +1161,22 @@ class PlotSession:
         html_display_link=True,
         **kwargs,
     ):
+        """Creates a tabbed layout with multiple interactive plots of the dataset
+
+        Naming the plot allows any interactive selection made in the
+        plot to be referred to later.
+
+        Parameters
+        ----------
+        name : str
+            name of the plot
+        based_on : _type_, optional
+            _description_, by default None
+        notebook : bool, optional
+            whether plot is shown in a notebook or , by default True
+        html_display_link : bool, optional
+            TODO (? What is it for?), by default True
+        """
         ## Since this function starts a Bokeh server, stop various
         ## INFO and WARN messages being displayed in the notebook
         if self._verbose:
@@ -1252,6 +1314,27 @@ class PlotSession:
         records=None,
         invert=False,
     ):
+        """Adds a selection to the plot session
+
+        Parameters
+        ----------
+        name : str
+            name of the selection
+        based_on : str, optional
+            name of the selection on which new selection is based, by default None
+        columns : list, optional
+            The included column names (may be any value returned by
+            ``Membership.columns()``, which will generally be the same as
+            in the underlying data source)
+        records : list, optional
+            The included record IDs (may be any value in
+            ``Membership.columns()["_record_id"]``)
+        intersections : list, optional
+            The included intersection IDs (may be any value in
+            ``Membership.intersections().index``)
+        invert : bool, optional
+            inverts selection, by default False
+        """
         if not invert:
             parent = self._selection_history.membership(based_on)
             columns = parent.invert_column_selection(columns)
@@ -1266,9 +1349,36 @@ class PlotSession:
         self._selection_history[name] = selection
 
     def selected_records(self, name=None, base_selection=None):
+        """Returns the IDs of the records in the selection
+
+        Parameters
+        ----------
+        name : str, optional
+            name of the selection, by default None
+        base_selection : _type_, optional
+            name of the base selection from which selection is taken, by default None
+
+        Returns
+        -------
+        pd.Series
+            records IDs in selection
+        """
         return self._selection_history.selected_records(name, base_selection)
 
     def membership(self, name=None):
+        """Return the membership instance associated with the selection
+
+        Parameters
+        ----------
+        name : str, optional
+            the name of the selection for which to construct the ``Membership`` object,
+            by default None
+
+        Returns
+        -------
+        membership
+            membership object associated with the selection
+        """
         return self._selection_history.membership(name)
 
     def dict(self):
