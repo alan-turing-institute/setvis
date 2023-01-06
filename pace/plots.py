@@ -27,8 +27,10 @@ from IPython.display import Javascript, display
 from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
 from pace.membership import Membership
-import pace.membership as membership
+
+# import pace.membership as membership
 from pace.history import SelectionHistory, Selection
+import pace.plotutils as plotutils
 
 
 # Set up logging
@@ -97,11 +99,11 @@ class SetBarChart(PlotBase):
     ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.set_bar_chart_data(
+        self._bar_data = plotutils.set_bar_chart_data(
             data, sort_x_by, sort_x_order
         )
         self.source = ColumnDataSource(
-            membership.set_bar_chart_data(data).reset_index()
+            plotutils.set_bar_chart_data(data).reset_index()
         )
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -243,7 +245,7 @@ class SetCardinalityHistogram(PlotBase):
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = membership.set_cardinality_histogram_data(
+        ) = plotutils.set_cardinality_histogram_data(
             data,
             bins=self._bins,
         )
@@ -420,7 +422,7 @@ class IntersectionBarChart(PlotBase):
     ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.intersection_bar_chart_data(
+        self._bar_data = plotutils.intersection_bar_chart_data(
             data,
             sort_x_by,
             sort_x_order,
@@ -563,7 +565,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_cardinality_histogram_data(data, bins=bins)
+        ) = plotutils.intersection_cardinality_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -718,7 +720,7 @@ class IntersectionDegreeHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_degree_histogram_data(data, bins=bins)
+        ) = plotutils.intersection_degree_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -893,7 +895,7 @@ class IntersectionHeatmap(PlotBase):
         set_mode = data._set_mode
         self._data = data
 
-        heatmap_data = membership.intersection_heatmap_data(
+        heatmap_data = plotutils.intersection_heatmap_data(
             data,
             sort_x_by,
             sort_y_by,
@@ -1281,7 +1283,7 @@ class PlotSession:
 
         if self._verbose:
             logging.info(
-                f"""
+                """
 
     # ********
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
