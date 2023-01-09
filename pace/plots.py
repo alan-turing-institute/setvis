@@ -55,15 +55,10 @@ class PlotBase:
 
 
 class SetBarChart(PlotBase):
-    """A class used to represent a set bar chart.
-
-    This class is used to represent the data of a Membership object
-    in form of a set bar chart, where each bar represents a set and indicates
-    the number of records that are part of this set.
+    """A bar chart plot representing the number of records in each set.
 
     Only the items in the initial selection of the Membership object are
-    included in the set bar chart. If no selection is specified, all items
-    are included.
+    included in the plot. If no selection is specified, all items are included.
 
     Parameters
     ----------
@@ -204,15 +199,12 @@ Extended description ...""",
 
 
 class SetCardinalityHistogram(PlotBase):
-    """A class used to represent a set cardinality histogram.
+    """A histogram plot that bins the number of records in a set.
 
-    This class is used to represent the data of a Membership object in form of
-    a set cardinality histogram, which bins the number of elements in a set.
-    The first bin only contains the sets with no member elements.
+    The first bin only contains the sets with no records in them.
 
     Only the items in the initial selection of the Membership object are
-    included in the histogram. If no selection is specified, all items are
-    included.
+    included in the plot. If no selection is specified, all items are included.
 
     Parameters
     ----------
@@ -378,13 +370,11 @@ class SetCardinalityHistogram(PlotBase):
 
 
 class IntersectionBarChart(PlotBase):
-    """A class used to represent a intersection bar chart.
-    This class is used to represent the data of a Membership object in form
-    of an intersection bar chart, where each bar represents a unique set
-    intersection and the number elements associated with this set intersection.
+    """A bar chart plot that represents the number of records for each unique
+    set intersection.
 
     Only the items in the initial selection of the Membership object are
-    included in the intersection bar chart. If no selection is specified,
+    included in the plott. If no selection is specified,
     all items are included.
 
     Parameters
@@ -524,15 +514,11 @@ class IntersectionBarChart(PlotBase):
 
 
 class IntersectionCardinalityHistogram(PlotBase):
-    """A class used to represent an intersection cardinality histogram.
-
-    This class is used to represent the data of a Membership object in form of
-    a intersection cardinality histogram, which bins the number of elements
-    for each set intersection.
+    """A histogram plot that bins the number of records for each
+    set intersection.
 
     Only the items in the initial selection of the Membership object are
-    included in the intersection cardinality histogram. If no selection is
-    specified, all items are included.
+    included in the plot. If no selection is specified, all items are included.
 
     Parameters
     ----------
@@ -680,14 +666,10 @@ class IntersectionCardinalityHistogram(PlotBase):
 
 
 class IntersectionDegreeHistogram(PlotBase):
-    """A class used to represent a intersection degree histogram.
-
-    This class is used to represent the data of a Membership object in form of
-    an intersection degree histogram, which bins the number of sets that form
-    a set intersection.
+    """A histogram plot that bins the number of sets that form a set intersection.
 
     Only the items in the initial selection of the Membership object are
-    included in the intersection degree histogram. If no selection is
+    included in the plot. If no selection is
     specified, all items are included.
 
     Parameters
@@ -838,16 +820,14 @@ class IntersectionDegreeHistogram(PlotBase):
 
 
 class IntersectionHeatmap(PlotBase):
-    """A class used to represent an intersection heatmap.
-
-    This class is used to represent the data of a Membership object in form of
-    an intersection heatmap, which displays a matrix of sets on the x-axis and
+    """A heatmap that displays a matrix of sets on the x-axis and
     the set intersections on the y-axis.
-    The number of elements that are associated with a set intersection is
+
+    The number of records that are associated with a set intersection is
     encoded in the colour map.
 
     Only the items in the initial selection of the Membership object are
-    included in the heatmap. If no selection is specified, all items are
+    included in the plot. If no selection is specified, all items are
     included.
 
     Parameters
@@ -1449,7 +1429,7 @@ class PlotSession:
         }
 
     def save(self, filename: str):
-        """Saves the session state to a file
+        """Saves the session state to a `json` file
 
         Parameters
         ----------
