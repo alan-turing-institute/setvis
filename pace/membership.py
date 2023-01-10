@@ -64,6 +64,38 @@ class Membership:
     An interpretation of sets as 'columns' and elements as
     boolean-valued 'records' is often useful, so sets/columns and
     elements/records are used interchangeably.
+
+    Using one of the various named constructors
+    (:func:`Membership.from_data_frame`, :func:`Membership.from_csv`,
+    :func:`Membership.from_membership_data_frame` or
+    :func:`Membership.from_membership_csv`) is the preferred way to
+    construct a Membership object.
+
+    If directly using the default constructor, the internal
+    representation of the data is passed as two pandas dataframes,
+    with these and the other arguments as given below.
+
+    Parameters
+    ----------
+    intersection_id_to_columns: pd.DataFrame
+
+        A dataframe with as many rows as there are unique
+        intersections (patterns of membership or missingness), and a
+        column for each set (or column in the original dataframe)
+
+    intersection_id_to_records: pd.DataFrame
+
+        A dataframe with as many rows as there are records.  The index
+        of this DataFrame must be named "intersection_id" with a
+        foreign key relationship to `intersection_id_to_columns`. It
+        doesn't have to be a *unique* index (and generally won't be).
+        This dataframe otherwise has a single column
+
+    check: bool
+
+        Check that the internal representation satisfies the required
+        invariants.
+
     """
 
     _intersection_id_to_columns: pd.DataFrame
