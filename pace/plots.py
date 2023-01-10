@@ -59,16 +59,19 @@ class PlotBase:
 
         Parameters
         ----------
+
         selection : Selection
             selected items of ``Membership`` object
 
         Returns
         -------
+
         Sequence[int]
             Bokeh indices of the plot elements that correspond to the PACE selection.
 
         Raises
         ------
+
         NotImplementedError
             _description_
         """
@@ -169,6 +172,22 @@ Extended description ...""",
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the set bar chart plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot.
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        x_range : range of x-axis. By default, range is automatically
+            determined based on plot data.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+          All other arguments are forwarded to :func:`bokeh.plotting.figure`
 
         Returns
         -------
@@ -280,6 +299,20 @@ class SetCardinalityHistogram(PlotBase):
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the set cardinality histogram plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot.
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
 
         Returns
         -------
@@ -426,10 +459,24 @@ class IntersectionBarChart(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the intersection bar chart plot.
 
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
         Returns
         -------
         bokeh.plotting.Figure
-            bar chart plot
+            bar chart plot. The default is
         """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
@@ -491,6 +538,7 @@ class IntersectionCardinalityHistogram(PlotBase):
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the intersection cardinality histogram
+
     bins : int
 
     """
@@ -540,6 +588,20 @@ class IntersectionCardinalityHistogram(PlotBase):
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the intersection cardinality histogram plot.
 
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
         Returns
         -------
         bokeh.plotting.Figure
@@ -568,19 +630,6 @@ class IntersectionCardinalityHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to
-        a ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of the bins selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to the plot selection
-        """
         include = list(
             self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
         )
@@ -671,6 +720,20 @@ class IntersectionDegreeHistogram(PlotBase):
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the intersection degree histogram.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
 
         Returns
         -------
@@ -829,6 +892,20 @@ class IntersectionHeatmap(PlotBase):
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
         """Creates a figure with the intersection heatmap plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        x_range : range of x-axis. By default, range is automatically
+            determined based on plot data.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
 
         Returns
         -------
