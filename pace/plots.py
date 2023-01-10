@@ -48,9 +48,52 @@ class PlotBase:
         raise NotImplementedError()
 
     def selection_to_plot_indices(self, selection: Selection) -> Sequence[int]:
+        """Maps a ``Selection`` to the corresponding bin indices of the
+        histogram.
+
+        PACE understands items selected in a ``Membership`` object in form
+        of records, columns or intersections, while Bokeh uses numeric indices to
+        identify the elements of a plot (e.g. bars, fields in a heatmap).
+        This converts such PACE ``Selection`` object into a list of corresponding
+        Bokeh indices. This conversion is specific to a plot type.
+
+        Parameters
+        ----------
+        selection : Selection
+            selected items of ``Membership`` object
+
+        Returns
+        -------
+        Sequence[int]
+            Bokeh indices of the plot elements that correspond to the PACE selection.
+
+        Raises
+        ------
+        NotImplementedError
+            _description_
+        """
         raise NotImplementedError()
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        """Maps the interactive selection made in the plot to
+        a ``Selection`` object.
+
+        To identify the elements of a plot (e.g. bars, fields in a heatmap),
+        Bokeh indexes them in a numeric way. This converts the
+        list of selected Bokeh indices into a selection of records, columns
+        or intersections understood by PACE. This conversion is specific to
+        a plot type.
+
+        Parameters
+        ----------
+        indices : Sequence[int]
+            Bokeh indices of the elements selected in the plot
+
+        Returns
+        -------
+        Selection
+            items in Membership object that correspond to the plot selection
+        """
         raise NotImplementedError()
 
 
@@ -154,19 +197,6 @@ Extended description ...""",
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to
-        a ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of the bars selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to the plot selection
-        """
         col_labels = self._data.columns()
 
         return Selection(
@@ -176,19 +206,6 @@ Extended description ...""",
         )
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bar indices of bar chart
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those bars in the set bar
-            chart that correspond to the items in the Selection
-        """
         col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
             np.in1d(col_labels, selection.columns, invert=True)
@@ -296,19 +313,6 @@ class SetCardinalityHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to
-        a ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of histogram bins selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to the plot selection
-        """
         bin_ids = [
             x + 1 for x in indices
         ]  # bin_ids for 10 bins are 1-10, indices plot 0-9
@@ -319,20 +323,6 @@ class SetCardinalityHistogram(PlotBase):
         return Selection(columns=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the
-        histogram.
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those bins in the histogram
-            that correspond to the items in the selection
-        """
         col_labels = self._data.columns()
         col_indices_np_tuple = np.where(
             np.in1d(col_labels, selection.columns, invert=True)
@@ -465,37 +455,11 @@ class IntersectionBarChart(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to
-        a ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of the bars selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to the plot selection
-        """
         include = list(self._bar_data["intersection_id"].iloc[indices])
         exclude = self._data.invert_intersection_selection(include)
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bar indices of bar chart
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those bars in the bar chart
-            that correspond to the items in the Selection
-        """
         intersection_ids_tuple = np.where(
             np.in1d(
                 self._data.intersections().index,
@@ -624,20 +588,6 @@ class IntersectionCardinalityHistogram(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the
-        histogram
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those bins in the histogram
-            that correspond to the items in the Selection
-        """
         intersection_ids_tuple = np.where(
             np.in1d(
                 self._data.intersections().index,
@@ -650,13 +600,6 @@ class IntersectionCardinalityHistogram(PlotBase):
         return indices
 
     def _get_xtick_labels(self):
-        """Returns the labels for the x-axis ticks of the histogram.
-
-        Returns
-        -------
-        dict
-            dict that maps the tick location on the x-axis to the tick labels
-        """
         keys = [str(x - 0.5) for x in range(self._bins)]
         vals = [
             f"{int(np.ceil(self._hist_edges[i]))}"
@@ -757,19 +700,6 @@ class IntersectionDegreeHistogram(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to
-        a ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of the bins selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to plot selection
-        """
         include = list(
             self._hist_data[self._hist_data["_bin_id"].isin(indices)].index
         )
@@ -777,20 +707,6 @@ class IntersectionDegreeHistogram(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding bin indices of the
-        histogram
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those bins in the histogram
-            that correspond to the items in the Selection
-        """
         intersection_ids_tuple = np.where(
             np.in1d(
                 self._data.intersections().index,
@@ -957,20 +873,6 @@ class IntersectionHeatmap(PlotBase):
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """Function to map the interactive selection made in the plot to a
-        ``Selection`` object.
-
-        Parameters
-        ----------
-        indices : Sequence[int]
-            indices of the heatmap cells selected in the plot
-
-        Returns
-        -------
-        Selection
-            items in Membership object that correspond to the intersections
-            selected in the plot
-        """
         n_intersections = len(self._data.intersections())
         intersection_id = self._data.intersections().index.values
         include = list({intersection_id[i % n_intersections] for i in indices})
@@ -979,20 +881,6 @@ class IntersectionHeatmap(PlotBase):
         return Selection(intersections=exclude)
 
     def selection_to_plot_indices(self, selection: Selection) -> List[int]:
-        """Maps a ``Selection`` to the corresponding cell indices of the
-        heatmap
-
-        Parameters
-        ----------
-        selection : Selection
-            contains selected items of Membership object
-
-        Returns
-        -------
-        List[int]
-            a list that contains the indices of those cells in the heatmap
-            that correspond to the items in the Selection
-        """
         n_columns = len(self._data.columns())
         n_intersections = len(self._data.intersections())
 
