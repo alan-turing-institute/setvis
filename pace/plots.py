@@ -11,7 +11,7 @@ from bokeh.models import (
     HelpTool,
 )
 from bokeh.palettes import Oranges256
-from bokeh.transform import transform, linear_cmap
+from bokeh.transform import linear_cmap
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
@@ -21,13 +21,16 @@ import numpy as np
 import logging
 import base64
 from weakref import WeakValueDictionary
+
 from IPython.display import Javascript, display
 
 from typing import Any, Sequence, List, Dict, Tuple
 from abc import ABC, abstractmethod
 from pace.membership import Membership
-import pace.membership as membership
+
+# import pace.membership as membership
 from pace.history import SelectionHistory, Selection
+import pace.plotutils as plotutils
 
 
 # Set up logging
@@ -45,13 +48,86 @@ class PlotBase:
         raise NotImplementedError()
 
     def selection_to_plot_indices(self, selection: Selection) -> Sequence[int]:
+        """Maps a ``Selection`` to the corresponding bin indices of the
+        histogram.
+
+        PACE understands items selected in a ``Membership`` object in form
+        of records, columns or intersections, while Bokeh uses numeric indices to
+        identify the elements of a plot (e.g. bars, fields in a heatmap).
+        This converts such PACE ``Selection`` object into a list of corresponding
+        Bokeh indices. This conversion is specific to a plot type.
+
+        Parameters
+        ----------
+
+        selection : Selection
+            selected items of ``Membership`` object
+
+        Returns
+        -------
+
+        Sequence[int]
+            Bokeh indices of the plot elements that correspond to the PACE selection.
+
+        Raises
+        ------
+
+        NotImplementedError
+            _description_
+        """
         raise NotImplementedError()
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
+        """Maps the interactive selection made in the plot to
+        a ``Selection`` object.
+
+        To identify the elements of a plot (e.g. bars, fields in a heatmap),
+        Bokeh indexes them in a numeric way. This converts the
+        list of selected Bokeh indices into a selection of records, columns
+        or intersections understood by PACE. This conversion is specific to
+        a plot type.
+
+        Parameters
+        ----------
+        indices : Sequence[int]
+            Bokeh indices of the elements selected in the plot
+
+        Returns
+        -------
+        Selection
+            items in Membership object that correspond to the plot selection
+        """
         raise NotImplementedError()
 
 
 class SetBarChart(PlotBase):
+    """A bar chart plot representing the number of records in each set.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plot. If no selection is specified, all items are included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included in
+        the set bar chart
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "value": sorts the bars along the x-axis with ascending or descending
+        y-value as specified in `sort_x_order`
+        - "alphabetical": sorts the bars along the x-axis in alphabetical order
+        as specified in `sort_x_order`
+        - default: if none of the above is provided the bars are sorted
+        in the order they appear in the dataset.
+    sort_x_order: str
+        Sorting order for the x-axis. Options are:
+        - "ascending"
+        - "descending"
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -64,11 +140,11 @@ class SetBarChart(PlotBase):
     ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.set_bar_chart_data(
+        self._bar_data = plotutils.set_bar_chart_data(
             data, sort_x_by, sort_x_order
         )
         self.source = ColumnDataSource(
-            membership.set_bar_chart_data(data).reset_index()
+            plotutils.set_bar_chart_data(data).reset_index()
         )
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -95,6 +171,29 @@ Extended description ...""",
         self.ylabel = "Cardinality" if set_mode else "Number of missing values"
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the set bar chart plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot.
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        x_range : range of x-axis. By default, range is automatically
+            determined based on plot data.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+          All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            bar chart plot
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
         kwargs.setdefault("x_range", list(self._bar_data.index))
@@ -117,19 +216,6 @@ Extended description ...""",
         return p
 
     def plot_indices_to_selection(self, indices: Sequence[int]) -> Selection:
-        """ Function to map the interactive selection made in the plot to
-            a ``Selection`` object.
-
-            Parameters
-            ----------
-            indices : Sequence[int]
-                indices of the bars selected in the plot
-
-            Returns
-            -------
-            Selection object
-
-        """
         col_labels = self._data.columns()
 
         return Selection(
@@ -149,6 +235,24 @@ Extended description ...""",
 
 
 class SetCardinalityHistogram(PlotBase):
+    """A histogram plot that bins the number of records in a set.
+
+    The first bin only contains the sets with no records in them.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plot. If no selection is specified, all items are included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included
+        in the histogram
+    bins : int
+        number of histogram bins
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -168,7 +272,10 @@ class SetCardinalityHistogram(PlotBase):
             self._hist_data,
             self._column_data_source,
             self._hist_edges,
-        ) = membership.set_cardinality_histogram_data(data, bins=self._bins,)
+        ) = plotutils.set_cardinality_histogram_data(
+            data,
+            bins=self._bins,
+        )
         self.source = ColumnDataSource(data=self._column_data_source)
         self.source.selected.indices = self.selection_to_plot_indices(
             initial_selection
@@ -191,6 +298,27 @@ class SetCardinalityHistogram(PlotBase):
         self.linecolor = "white"
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the set cardinality histogram plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot.
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            histogram plot
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
 
@@ -245,6 +373,16 @@ class SetCardinalityHistogram(PlotBase):
         return indices
 
     def _get_xtick_labels(self):
+        """Returns the labels for the x-axis ticks of the histogram.
+
+        Note that the first bin is a special case and only contains sets
+        without members.
+
+        Returns
+        -------
+        dict
+            dict that maps the bin index to the tick labels
+        """
         keys = [str(x + 1) for x in range(self._bins)]
         vals = [
             f"{int(np.ceil(self._hist_edges[i]))} - {int(np.floor(self._hist_edges[i+1]))}"
@@ -255,6 +393,35 @@ class SetCardinalityHistogram(PlotBase):
 
 
 class IntersectionBarChart(PlotBase):
+    """A bar chart plot that represents the number of records for each unique
+    set intersection.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plott. If no selection is specified,
+    all items are included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included in
+        the set bar chart
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "value": sorts the bars along the x-axis with ascending or descending
+        y-value as specified in `sort_x_order`
+        - "alphabetical": sorts the bars along the x-axis in alphabetical order
+        as specified in `sort_x_order`
+        - default: if none of the above is provided the bars are sorted
+        in the order they appear in the dataset.
+    sort_x_order: str
+        Sorting order for the x-axis. Options are:
+        - "ascending"
+        - "descending"
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -267,8 +434,10 @@ class IntersectionBarChart(PlotBase):
     ):
         set_mode = data._set_mode
         self._data = data
-        self._bar_data = membership.intersection_bar_chart_data(
-            data, sort_x_by, sort_x_order,
+        self._bar_data = plotutils.intersection_bar_chart_data(
+            data,
+            sort_x_by,
+            sort_x_order,
         )
         self.source = ColumnDataSource(self._bar_data)
 
@@ -288,6 +457,27 @@ class IntersectionBarChart(PlotBase):
         )
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the intersection bar chart plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            bar chart plot. The default is
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
 
@@ -335,6 +525,24 @@ class IntersectionBarChart(PlotBase):
 
 
 class IntersectionCardinalityHistogram(PlotBase):
+    """A histogram plot that bins the number of records for each
+    set intersection.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plot. If no selection is specified, all items are included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included in
+        the intersection cardinality histogram
+
+    bins : int
+
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -355,7 +563,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_cardinality_histogram_data(data, bins=bins)
+        ) = plotutils.intersection_cardinality_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -378,6 +586,27 @@ class IntersectionCardinalityHistogram(PlotBase):
         )
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the intersection cardinality histogram plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            histogram plot
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
 
@@ -429,6 +658,23 @@ class IntersectionCardinalityHistogram(PlotBase):
 
 
 class IntersectionDegreeHistogram(PlotBase):
+    """A histogram plot that bins the number of sets that form a set intersection.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plot. If no selection is
+    specified, all items are included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included in
+        the histogram
+    bins : int
+        number of histogram bins
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -448,7 +694,7 @@ class IntersectionDegreeHistogram(PlotBase):
             self._column_data_source,
             self._hist_edges,
             self._bins,
-        ) = membership.intersection_degree_histogram_data(data, bins=bins)
+        ) = plotutils.intersection_degree_histogram_data(data, bins=bins)
         self.source = ColumnDataSource(self._column_data_source)
 
         self.source.selected.indices = self.selection_to_plot_indices(
@@ -473,6 +719,27 @@ class IntersectionDegreeHistogram(PlotBase):
         )
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the intersection degree histogram.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        y_axis_type : str
+            Options are "linear" and "log". The default is "linear".
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            histogram plot
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
 
@@ -515,6 +782,14 @@ class IntersectionDegreeHistogram(PlotBase):
         return indices
 
     def _get_xtick_labels(self):
+        """Returns the labels for the x-axis ticks of the histogram.
+
+        Returns
+        -------
+        dict
+            a dictionary that maps the tick position on the x-axis to the
+            labels
+        """
         keys = [str(x - 0.5) for x in range(self._bins)]
         vals = [
             f"{int(np.ceil(self._hist_edges[i]))}"
@@ -524,6 +799,48 @@ class IntersectionDegreeHistogram(PlotBase):
 
 
 class IntersectionHeatmap(PlotBase):
+    """A heatmap that displays a matrix of sets on the x-axis and
+    the set intersections on the y-axis.
+
+    The number of records that are associated with a set intersection is
+    encoded in the colour map.
+
+    Only the items in the initial selection of the Membership object are
+    included in the plot. If no selection is specified, all items are
+    included.
+
+    Parameters
+    ----------
+    data : Membership
+        a :class:`~pace.membership.Membership` object
+    initial_selection : Selection
+        initial selection of items in the membership object to be included in
+        the set bar chart
+    sort_x_by: str
+        Name of the sort option for the x-axis.
+        Sort options are:
+        - "alphabetical": sorts the fields along the x-axis in alphabetical
+          order as specified in `sort_x_order`
+        - default: if none of the above is provided the fields on the x-axis
+          of the heatmap are sorted in the order they appear in the dataset.
+    sort_y_by: str
+        Name of the sort option for the y-axis.
+        Sort options are:
+        - "value": sorts the fields along the y-axis by the heatmap value with
+          the order as specified in `sort_x_order`
+        - "length": sorts the fields along the y-axis by the intersection
+          length with the order as specified in `sort_x_order`
+        - default: if none of the above is provided the intersections on the
+          y-axis of the heatmap are sorted in the order they appear in the
+          dataset.
+    sort_x_order: str
+        - "ascending" (default)
+        - "descending"
+    sort_y_order: str
+        - "ascending" (default)
+        - "descending"
+    """
+
     def __init__(
         self,
         data: Membership,
@@ -537,15 +854,20 @@ class IntersectionHeatmap(PlotBase):
         set_mode = data._set_mode
         self._data = data
 
-        heatmap_data = membership.intersection_heatmap_data(
-            data, sort_x_by, sort_y_by, sort_x_order, sort_y_order,
+        heatmap_data = plotutils.intersection_heatmap_data(
+            data,
+            sort_x_by,
+            sort_y_by,
+            sort_x_order,
+            sort_y_order,
         )
         heatmap_data["intersection_id_str"] = heatmap_data.index.values.astype(
             str
         )
         heatmap_data = heatmap_data.set_index("intersection_id_str")
         heatmap_data_long = pd.melt(
-            heatmap_data.reset_index(), id_vars=["intersection_id_str"],
+            heatmap_data.reset_index(),
+            id_vars=["intersection_id_str"],
         )
         self.source = ColumnDataSource(heatmap_data_long)
 
@@ -569,6 +891,27 @@ class IntersectionHeatmap(PlotBase):
         self.grid_visible = False
 
     def plot(self, **kwargs) -> bokeh.plotting.Figure:
+        """Creates a figure with the intersection heatmap plot.
+
+        Parameters
+        ----------
+        title : str
+            title of the plot
+        tools : list[str]
+            list of tools to interact with Bokeh plot. For each tool an
+            icon appears in the plot toolbar.
+        x_range : range of x-axis. By default, range is automatically
+            determined based on plot data.
+        y_range : range of y-axis. By default, range is automatically
+            determined based on plot data.
+        **kwargs
+            All other arguments are forwarded to :func:`bokeh.plotting.figure`
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            heatmap plot
+        """
         kwargs.setdefault("title", self.title)
         kwargs.setdefault("tools", self.tools)
         kwargs.setdefault("x_range", self.x_range)
@@ -640,9 +983,27 @@ class PlotSession:
     """An interactive plotting session in a Jupyter notebook
 
     A session contains a sequence of named selections, each with a few
-    corresponding Bokeh plots (tabs in a tabbed layout).  New
+    corresponding Bokeh plots (tabs in a tabbed layout). New
     selections can be made interactively from the plots, and then
     other plots added.
+
+    It is possible to save a session, i.e., the user-made interactive
+    selections in every plot to a file, and load it to restore the state
+    of the session.
+
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        contains the dataset
+    session_file : str
+        file containing the interactive selections of a previously saved
+        session, by default None
+    set_mode : bool
+        whether to operate in set mode (True) or missingness mode (False),
+        by default False
+    verbose : bool
+        whether to produce verbose logging output, by default False
 
     """
 
@@ -676,6 +1037,29 @@ class PlotSession:
             self._active_tabs = j["active_tabs"]
 
     def _add_subplot(self, plotter_cls, name, tabname, **kwargs):
+        """Creates a new subplot to be added to tabbed layout
+
+        Parameters
+        ----------
+        plotter_cls : class(PlotBase)
+            class of the subplot object to be added.
+            Options are:
+            - SetBarChart
+            - IntersectionHeatmap
+            - SetCardinalityHistogram
+            - IntersectionBarChart
+            - IntersectionCardinalityHistogram
+            - IntersectionDegreeHistogram
+        name : str
+            name of plot to which subplot is added
+        tabname : str
+            name of the tab
+
+        Returns
+        -------
+        bokeh.plotting.Figure
+            plot to be added to tabbed layout
+        """
         parent = self._selection_history.parent(name)
 
         m = self._selection_history.membership(parent)
@@ -735,6 +1119,9 @@ class PlotSession:
         about the plot can be found under the documentation for its
         plot class.
 
+        Naming the plot allows any interactive selection made in the
+        plot to be referred to later.
+
         ====================================  ============================  ============================================
         Set-mode plot                         Missingness-mode plot         Plot class
         ====================================  ============================  ============================================
@@ -783,7 +1170,6 @@ class PlotSession:
             See the documentation for the individual plot classes for
             the accepted dictionary keys (any that are unknown are
             forwarded to :py:func:`bokeh.plotting.figure`).
-
         """
 
         ## Since this function starts a Bokeh server, stop various
@@ -811,7 +1197,10 @@ class PlotSession:
             )
 
             p2 = self._add_subplot(
-                IntersectionHeatmap, name, "intersection_heatmap", **kwargs,
+                IntersectionHeatmap,
+                name,
+                "intersection_heatmap",
+                **kwargs,
             )
             tab2 = Panel(
                 child=p2,
@@ -821,7 +1210,10 @@ class PlotSession:
             )
 
             p3 = self._add_subplot(
-                IntersectionBarChart, name, "intersection_bar_chart", **kwargs,
+                IntersectionBarChart,
+                name,
+                "intersection_bar_chart",
+                **kwargs,
             )
             tab3 = Panel(
                 child=p3,
@@ -884,7 +1276,7 @@ class PlotSession:
 
         if self._verbose:
             logging.info(
-                f"""
+                """
 
     # ********
     # To add a plot, insert a new cell below, type "add_plot(selected_indices)" and run cell.
@@ -917,6 +1309,27 @@ class PlotSession:
         records=None,
         invert=False,
     ):
+        """Adds a selection to the plot session
+
+        Parameters
+        ----------
+        name : str
+            name of the selection
+        based_on : str, optional
+            name of the selection on which new selection is based, by default None
+        columns : list, optional
+            The included column names (may be any value returned by
+            ``Membership.columns()``, which will generally be the same as
+            in the underlying data source)
+        records : list, optional
+            The included record IDs (may be any value in
+            ``Membership.columns()["_record_id"]``)
+        intersections : list, optional
+            The included intersection IDs (may be any value in
+            ``Membership.intersections().index``)
+        invert : bool, optional
+            inverts selection, by default False
+        """
         if not invert:
             parent = self._selection_history.membership(based_on)
             columns = parent.invert_column_selection(columns)
@@ -931,9 +1344,36 @@ class PlotSession:
         self._selection_history[name] = selection
 
     def selected_records(self, name=None, base_selection=None):
+        """Returns the IDs of the records in the selection
+
+        Parameters
+        ----------
+        name : str, optional
+            name of the selection, by default None
+        base_selection : _type_, optional
+            name of the base selection from which selection is taken, by default None
+
+        Returns
+        -------
+        pd.Series
+            records IDs in selection
+        """
         return self._selection_history.selected_records(name, base_selection)
 
     def membership(self, name=None):
+        """Return the membership instance associated with the selection
+
+        Parameters
+        ----------
+        name : str, optional
+            the name of the selection for which to construct the ``Membership`` object,
+            by default None
+
+        Returns
+        -------
+        membership
+            membership object associated with the selection
+        """
         return self._selection_history.membership(name)
 
     def dict(self):
@@ -953,7 +1393,14 @@ class PlotSession:
             "active_tabs": self._active_tabs,
         }
 
-    def save(self, filename):
+    def save(self, filename: str):
+        """Saves the session state to a `json` file
+
+        Parameters
+        ----------
+        filename : str
+            name of the file used to save the session state
+        """
         with open(filename, "w") as f:
             json.dump(self.dict(), f, cls=NPIntEncoder, indent=1)
 
