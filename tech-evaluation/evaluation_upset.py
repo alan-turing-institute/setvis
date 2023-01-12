@@ -1,8 +1,5 @@
 import yaml
 import csv
-import pandas as pd
-from matplotlib import pyplot as plt
-from datetime import datetime
 
 from utils import generate_pattern, eval_data
 
@@ -33,7 +30,6 @@ with open(output_file, "w", newline="\n") as csvfile:
                 "Num_rows",
                 "Num_cols",
                 "Num_intersections",
-                "Stage",
                 "Tims (s)",
                 "RAM",
             ]
@@ -50,11 +46,20 @@ with open(output_file, "w", newline="\n") as csvfile:
                                 pattern, row, col, inter, type, seed
                             )
                             # step 2: evaluate data
-                            results = eval_data(
-                                df, package, pattern, row, col, inter, type,
-                            )
+                            time_eval = eval_data(df)
+                            # TODO: add RAM
                             # step 3: write result to file
-                            w.writerows(results)
+
+                            results = [
+                                "upset",
+                                pattern,
+                                row,
+                                col,
+                                inter,
+                                time_eval,
+                                "RAM missing",
+                            ]
+                            w.writerow(results)
 
     except:
         raise
