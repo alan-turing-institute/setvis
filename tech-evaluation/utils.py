@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import upsetplot
-from datetime import datetime
+from pace.membership import Membership
 
 
 def set_seed(seed):
@@ -123,12 +123,31 @@ def get_value(data_type="str"):
         return -999
 
 
-def compute_missingness(df):
-    """Compute missingness from data based on package provided."""
-    return upsetplot.from_indicators(indicators=pd.isna, data=df)
+def compute_missingness(df, package):
+    """Computes missingness of data with the provided package.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        contains the data
+    package : str
+        visualisation package, options are:
+        - "upset"
+        - "pace"
+    Returns
+    -------
+    pd.DataFrame
+        containing the data missingness information
+    """
+    if package == "upset":
+        return upsetplot.from_indicators(indicators=pd.isna, data=df)
+    elif package == "pace":
+        return Membership.from_data_frame(df)  # TODO: check this
+    else:
+        raise ValueError
 
 
-def eval_data(df):
+def eval_data(df, package):
     """
     Evaluates the performance of UpSet by timing the
     missingness computation and the visualisation of the provided data.
@@ -137,6 +156,10 @@ def eval_data(df):
     ----------
     df : pd.DataFrame
         data frame
+    package : str
+        visualisation package, options are:
+        - "upset"
+        - "pace"
 
     Returns
     -------
@@ -145,16 +168,13 @@ def eval_data(df):
 
     """
     try:
-        time1 = datetime.now()
-        data_missing = compute_missingness(df)
+        data_missing = compute_missingness(df, package)
 
-        # TODO: add that we write plot to png or some other file for timing
-        upsetplot.plot(data_missing, show_counts=True)
-        # plt.show(block=False)
-        plt.savefig("tmp.pdf")
-        time2 = datetime.now()
-
-        return str(time2 - time1)
+        # TODO: how to time plot for pace?
+        if package == "upset":
+            upsetplot.plot(data_missing, show_counts=True)
+            # plt.show(block=False)
+            plt.savefig("tmp.pdf")
 
     except:
         raise
