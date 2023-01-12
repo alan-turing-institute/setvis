@@ -1,9 +1,11 @@
 import pytest
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from pace.membership import Membership, Col
 
 
+@pytest.fixture
 def example_df():
     return pd.DataFrame(
         data={
@@ -11,6 +13,15 @@ def example_df():
             "b": [1, pd.NA, 1, pd.NA, 1, pd.NA, 1],
         }
     )
+
+
+@pytest.fixture
+def simpsons_format2():
+    test_source_path = Path(__file__).resolve()
+    test_source_dir = test_source_path.parent
+    dataset_dir = test_source_dir.parent / "examples" / "datasets"
+
+    return pd.read_csv(dataset_dir / "simpsons - Format 2.csv")
 
 
 def test_membership_construction():
@@ -36,27 +47,39 @@ def test_membership_construction():
         Membership(intersection_id_to_columns=c2, intersection_id_to_records=r2)
 
 
-def test_membership_from_df():
+def test_membership_from_df(example_df):
     """
     Check construction of Membership from a pandas data frame, and
     that the original dataframe missingness can be reconstructed.
     """
 
-    df = example_df()
-
-    m = Membership.from_data_frame(df)
+    m = Membership.from_data_frame(example_df)
 
     assert (
         m._intersection_id_to_records.join(m._intersection_id_to_columns)
         .set_index("_record_id")
         .sort_index()
-        .equals(df.isnull())
+        .equals(example_df.isnull())
     )
 
 
-def test_membership_match():
-    df = example_df()
-    m = Membership.from_data_frame(df)
+def test_membership_set_mode_no_empty(simpsons_format2):
+    """Check construction (no exceptions) of Membership in set mode from
+    compressed format.
+
+    Regression of GH #77: failure when no element is a member of none
+    of the sets.
+    """
+
+    # First four rows have no 'empty' members
+    df = simpsons_format2[0:4]
+
+    # No exception
+    Membership.from_membership_data_frame(df)
+
+
+def test_membership_match(example_df):
+    m = Membership.from_data_frame(example_df)
 
     expected1 = np.array([1, 2, 6])
 
