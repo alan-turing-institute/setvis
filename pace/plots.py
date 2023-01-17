@@ -994,8 +994,8 @@ class PlotSession:
 
     Parameters
     ----------
-    df : pd.DataFrame
-        contains the dataset
+    data : pd.DataFrame or Membership
+        contains the dataset a ``Membership`` object
     session_file : str
         file containing the interactive selections of a previously saved
         session, by default None
@@ -1015,13 +1015,19 @@ class PlotSession:
     # visible (used for saving/loading sessions)
     _active_tabs: Dict[Any, int]
 
-    def __init__(self, df, session_file=None, set_mode=False, verbose=False):
+    def __init__(self, data, session_file=None, set_mode=False, verbose=False):
         self._verbose = verbose
         self._set_mode = set_mode
 
         bokeh.io.output_notebook(hide_banner=True)
 
-        m = Membership.from_data_frame(df, set_mode=self._set_mode)
+        if isinstance(data, pd.DataFrame):
+            # NB: this is for the ordinary (expanded format).
+            # from_membership_data_frame() would need to be called if the data
+            # frame is in the compact format
+            m = Membership.from_data_frame(data, set_mode=self._set_mode)
+        else:
+            m = data
 
         if session_file is None:
             self._selection_history = SelectionHistory(m)
