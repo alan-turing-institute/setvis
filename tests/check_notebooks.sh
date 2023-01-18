@@ -18,3 +18,11 @@ find . -maxdepth 1 \
      ! -name 'Tutorial 3 (supplemental) - Create the Postgres database.ipynb' \
      -print0 |
     xargs -0 -n 1 -I {} papermill "{}" "../_notebook-output/{}"
+
+# tech-eval notebook
+cd ../tech-evaluation
+find . -maxdepth 1 \
+     -name '*.ipynb' \
+     ! -name 'Technical Evaluation PACE vs Upset.ipynb' \
+     -print0 |
+    xargs -0 -n 1 -I {} papermill "{}" "../_notebook-output/{}"
