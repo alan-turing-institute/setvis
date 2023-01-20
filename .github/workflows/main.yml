@@ -46,10 +46,10 @@ jobs:
         poetry update
         poetry install -E all
 
-    - name: Run tests
+    - name: Tests
       run: |
         poetry run pytest
 
-    - name: Run notebooks
+    - name: Notebooks
       run: |
         cd tests && bash check_notebooks.sh
