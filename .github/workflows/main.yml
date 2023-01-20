@@ -24,6 +24,19 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Cache poetry
+      uses: actions/cache@v2
+      with:
+        path: ~/.local
+        key: poetry-1.2.0-0
+
+    - name: Cache deps
+      id: cache-deps
+      uses: actions/cache@v2
+      with:
+        path: .venv
+        key: pydeps-${{ hashFiles('**/poetry.lock') }}
+
     - name: Install
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
