@@ -34,8 +34,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pip install pytest
-        pytest
+        poetry run pytest
 
     - name: Run notebooks
       run: |
