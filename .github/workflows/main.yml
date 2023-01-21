@@ -39,6 +39,6 @@ jobs:
 
     - name: Notebooks
       run: |
-        pip install ipython
+        pip install ipython ipykernel
         ipython kernel install --name "python3" --user
         cd tests && bash check_notebooks.sh
