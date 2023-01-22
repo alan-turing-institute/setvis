@@ -41,10 +41,9 @@ jobs:
       run: |
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
-        cd tests
-        poetry shell
-        cd ../notebooks
+        cd notebooks
         mkdir -p ../_notebook-output
+        poetry shell
         find . -maxdepth 1 \
             -name '*.ipynb' \
             ! -name 'Performance.ipynb' \
