@@ -43,8 +43,7 @@ jobs:
         ipython kernel install --name "python3" --user
         cd notebooks
         mkdir -p ../_notebook-output
-        # cannot use poetry shell
-        source $(poetry env info --path)/bin/activate
+        poetry install -E all
         find . -maxdepth 1 \
             -name '*.ipynb' \
             ! -name 'Performance.ipynb' \
