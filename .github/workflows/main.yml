@@ -41,8 +41,7 @@ jobs:
       run: |
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
-        poetry build
-        pip install dist/*.whl
+        pip install -e '.[all]'
         cd notebooks
         mkdir -p ../_notebook-output
         find . -maxdepth 1 \
