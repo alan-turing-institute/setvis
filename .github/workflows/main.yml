@@ -31,6 +31,7 @@ jobs:
         pip install poetry
         pip install papermill
         poetry update
+        poetry config virtualenvs.create false
         poetry install -E all
 
     - name: Tests
@@ -43,7 +44,6 @@ jobs:
         ipython kernel install --name "python3" --user
         cd notebooks
         mkdir -p ../_notebook-output
-        source $(poetry env info --path)/bin/activate
         find . -maxdepth 1 \
             -name '*.ipynb' \
             ! -name 'Performance.ipynb' \
