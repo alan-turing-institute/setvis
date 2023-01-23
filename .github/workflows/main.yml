@@ -31,7 +31,6 @@ jobs:
         pip install poetry
         pip install papermill
         poetry update
-        poetry config virtualenvs.create false
         poetry install -E all
 
     - name: Tests
@@ -42,6 +41,8 @@ jobs:
       run: |
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
+        poetry config virtualenvs.create false
+        poetry install -E all
         cd notebooks
         mkdir -p ../_notebook-output
         find . -maxdepth 1 \
