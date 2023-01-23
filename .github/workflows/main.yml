@@ -41,9 +41,10 @@ jobs:
       run: |
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
+        poetry build
+        pip install dist/*.whl
         cd notebooks
         mkdir -p ../_notebook-output
-        source $(poetry env info --path)/bin/activate
         find . -maxdepth 1 \
             -name '*.ipynb' \
             ! -name 'Performance.ipynb' \
@@ -51,5 +52,5 @@ jobs:
             ! -name 'Tutorial 3 - Loading data from Postgres.ipynb' \
             ! -name 'Tutorial 3 (supplemental) - Create the Postgres database.ipynb' \
             -print0 |
-            xargs -0 -n 1 -I {} poetry run papermill "{}" "../_notebook-output/{}"
+            xargs -0 -n 1 -I {} papermill "{}" "../_notebook-output/{}"
 
