@@ -37,7 +37,8 @@ jobs:
       run: |
         poetry run pytest
 
-    - name: Notebooks
+    - name: Notebooks [Linux]
+      if: runner.os == 'Linux'
       run: |
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
