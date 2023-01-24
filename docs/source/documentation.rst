@@ -17,8 +17,16 @@ in the `docs` directory you will need (on a Debian Linux):
 You should now be able to run `make html` inside the `docs`
 directory and see the output in `docs/build/html`. The output
 should not need any "server" and you should be
-able to see the docs by running
+able to see the docs by opening the file ``docs/build/html/index.html`` in your web browser, which can be done from a file explorer, or alternatively, still within the ``docs`` directory, run
+
+on Debian:
+
+.. code:: bash
+  xdg-open build/html/index.html
+            
+or on macOS:
 
 .. code:: bash
 
-  xdg-open docs/build/html/index.html
+  open build/html/index.html
+
