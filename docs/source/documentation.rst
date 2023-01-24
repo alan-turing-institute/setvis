@@ -1,7 +1,7 @@
 Documentation
 =============
 
-For installation instructions see installation.
+For installation instructions see :ref:`Installation <installation-instructions>`.
 
 Generating Docs
 ===============
