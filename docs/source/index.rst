@@ -33,6 +33,7 @@ Contents
    installation
    overview
    tutorials
+   documentation
    api_reference
 
 Examples
