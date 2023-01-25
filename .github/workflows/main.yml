@@ -43,14 +43,6 @@ jobs:
         pip install ipython ipykernel
         ipython kernel install --name "python3" --user
         pip install -e '.[all]'
-        cd notebooks
         mkdir -p ../_notebook-output
-        find . -maxdepth 1 \
-            -name '*.ipynb' \
-            ! -name 'Performance.ipynb' \
-            ! -name 'Postgres example.ipynb' \
-            ! -name 'Tutorial 3 - Loading data from Postgres.ipynb' \
-            ! -name 'Tutorial 3 (supplemental) - Create the Postgres database.ipynb' \
-            -print0 |
-            xargs -0 -n 1 -I {} papermill "{}" "../_notebook-output/{}"
+        cd tests && bash check_notebooks.sh
 
