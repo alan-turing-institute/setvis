@@ -40,8 +40,6 @@ jobs:
     - name: Notebooks [Linux]
       if: runner.os == 'Linux'
       run: |
-        pip install ipython ipykernel
-        ipython kernel install --name "python3" --user
         pip install -e '.[all]'
         mkdir -p ../_notebook-output
         cd tests && bash check_notebooks.sh
