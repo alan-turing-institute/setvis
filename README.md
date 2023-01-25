@@ -1,6 +1,6 @@
 # setvis [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
 
-A tool for visualising patterns of missingness in data
+A tool for visualising patterns of missingness in data. `setvis` is matrix-based set visualization that operates with datasets that uses a memory-efficient architecture.
 
 ## Installation
 
@@ -12,9 +12,9 @@ These instructions have been tested with:
 - Python 3.8.2 on MacOS 10.15 (Catalina)
 
 ```
-git clone https://github.com/alan-turing-institute/visualising-data-profiles
+git clone https://github.com/alan-turing-institute/setvis
 
-cd visualising-data-profiles
+cd setvis
 
 python -m venv .venv
 
@@ -86,8 +86,8 @@ conda activate paceenv
 conda install git
 
 # Clone this repository
-git clone https://github.com/alan-turing-institute/visualising-data-profiles
-cd visualising-data-profiles
+git clone https://github.com/alan-turing-institute/setvis
+cd setvis
 
 # Install the Bottleneck conda package and its dependencies
 conda install Bottleneck=1.3.2
@@ -106,8 +106,8 @@ jupyter notebook notebooks
 
 ```
 # Clone this repository
-git clone https://github.com/alan-turing-institute/visualising-data-profiles
-cd visualising-data-profiles
+git clone https://github.com/alan-turing-institute/setvis
+cd setvis
 
 # Install this project and its dependencies into a virtual environment
 poetry install

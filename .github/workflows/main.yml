@@ -2,6 +2,8 @@ name: Python Package
 
 on:
   push:
+    paths-ignore:
+      - '**/README.md'
     branches: [ main, gh-actions ]
   pull_request:
     branches: [ main ]
