@@ -1,0 +1,48 @@
+name: Python Package
+
+on:
+  push:
+    paths-ignore:
+      - '**/README.md'
+    branches: [ main, gh-actions ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        pip install papermill
+        poetry update
+        poetry install -E all
+
+    - name: Tests
+      run: |
+        poetry run pytest
+
+    - name: Notebooks [Linux]
+      if: runner.os == 'Linux'
+      run: |
+        pip install -e '.[all]'
+        mkdir -p ../_notebook-output
+        cd tests && bash check_notebooks.sh
+
