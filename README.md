@@ -1,4 +1,5 @@
-# Visualising Data Profiles
+# setvis [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
+
 A tool for visualising patterns of missingness in data
 
 ## Installation
@@ -27,7 +28,7 @@ Then run either:
 ```
 pip install ".[extra]"
 ```
-which will install PACE and most of the optional extra dependencies
+which will install setvis (previously called PACE) and most of the optional extra dependencies
 
 or run:
 
@@ -35,7 +36,7 @@ or run:
 pip install .
 ```
 
-which will include just PACE and a minimal set of dependencies.
+which will include just setvis and a minimal set of dependencies.
 
 
 #### Extras and fine-tuning the installation
@@ -87,10 +88,10 @@ conda install git
 # Clone this repository
 git clone https://github.com/alan-turing-institute/visualising-data-profiles
 cd visualising-data-profiles
- 
+
 # Install the Bottleneck conda package and its dependencies
 conda install Bottleneck=1.3.2
- 
+
 # Install pace itself and the remaining dependencies with pip
 pip install ".[all]"
 ```
