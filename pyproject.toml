@@ -32,7 +32,7 @@ psutil = "^5.9.0"
 [tool.poetry.extras]
 notebooks = ["notebook", "matplotlib", "scikit-learn"]
 doc = ["Sphinx", "nbsphinx", "pydata-sphinx-theme"]
-test = ["pytest"]
+test = ["pytest", "papermill"]
 
 performance-extras = ["numexpr", "Bottleneck"]
 db = ["psycopg2"]
