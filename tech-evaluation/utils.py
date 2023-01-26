@@ -144,14 +144,14 @@ def generate_general_missing(num_rows, num_cols, num_combinations):
     length_ncomb = []
     for l1 in range(num_cols):
         max_comb.append(math.comb(num_cols, l1+1))
-        
+
         if l1 > 0 and l1 < num_cols-1:
             # Don't calculate this for combination length = 1 or num_cols
             length_ncomb.append([l1+1, max_comb[-1]])
-    
+
     # Sort the list of lists
-    length_ncomb.sort(key=lambda x:x[1])
-    
+    length_ncomb.sort(key=lambda x: x[1])
+
     if num_combinations <= sum(max_comb) and num_rows >= num_combinations and num_combinations >= num_cols + (num_cols - 1):
         # Calculate the number of combinations of each length (1 column, 2 columns, etc.) so the distribution is as even as possible
         # If you're interested 'esi' is an acronym for exclusive set intersections
@@ -161,12 +161,14 @@ def generate_general_missing(num_rows, num_cols, num_combinations):
         cnt = 0
         for item in length_ncomb:
             clen = item[0]
-            esi_params[clen] = min(item[1], int((num_combinations - ncombs + len(length_ncomb) - cnt - 1) / (len(length_ncomb) - cnt)))
+            esi_params[clen] = min(item[1], int(
+                (num_combinations - ncombs + len(length_ncomb) - cnt - 1) / (len(length_ncomb) - cnt)))
             ncombs = ncombs + esi_params[clen]
             cnt = cnt + 1
 
-        intersections_template = np.ones(shape=(num_combinations, num_cols)) # matrix of ones
-        
+        intersections_template = np.ones(
+            shape=(num_combinations, num_cols))  # matrix of ones
+
         # Loop over the parameter dictionary to create a list of lists. Each
         # item is a combination of missing values
         ii = 0
@@ -179,16 +181,16 @@ def generate_general_missing(num_rows, num_cols, num_combinations):
             for i in itertools.combinations(columns, key):
                 for n in i:
                     intersections_template[ii][n-1] = np.nan
-                    
-                #print(intersections_template[ii, :])
+
+                # print(intersections_template[ii, :])
                 ii = ii + 1
                 esi_count = esi_count + 1
                 if esi_count == value:
                     break
-                
+
         # Create a data frame that contains all the intersections, repeating them until there are the specified number of rows
         rows = []
-    
+
         count = 0
         for _ in range(num_rows):
             if count == num_combinations:  # reset counter to repeat patterns
@@ -196,12 +198,14 @@ def generate_general_missing(num_rows, num_cols, num_combinations):
             rows.append(intersections_template[count, :])
             count += 1
         cols = ["v" + str(i) for i in range(num_cols)]
-        df = pd.DataFrame(rows, columns=cols, dtype=object).sample(frac=1).reset_index(drop=True)
+        df = pd.DataFrame(rows, columns=cols, dtype=object).sample(
+            frac=1).reset_index(drop=True)
     else:
         # num_rows or num_combinations is too small to generate a general missing data pattern for num_cols columns
-        print('ERROR', 'num_rows =', num_rows, 'num_cols =', num_cols, 'num_combinations =', num_combinations, 'min allowed =', num_cols*2-1, 'max_possible =', sum(max_comb))
+        print('ERROR', 'num_rows =', num_rows, 'num_cols =', num_cols, 'num_combinations =',
+              num_combinations, 'min allowed =', num_cols*2-1, 'max_possible =', sum(max_comb))
         df = None
-    
+
     return df
 
 
@@ -225,7 +229,8 @@ def generate_planned_missing(num_rows, num_cols):
 
     """
     rows = []
-    intersections_template = np.ones(shape=(num_cols, num_cols)) # matrix of 0,1 of size nr_int x nr_col
+    # matrix of 0,1 of size nr_int x nr_col
+    intersections_template = np.ones(shape=(num_cols, num_cols))
     # Flag the diagonal elements as missing
     for l1 in range(num_cols):
         intersections_template[l1][l1] = np.nan
@@ -306,3 +311,65 @@ def eval_data(df, package):
 
     except:
         raise
+
+def get_dataframe_sets(df):
+    """
+    Convert a dataframe into a dictionary that defines the sets and their members.
+    The dictionary is suitable for upsetplot.from_contents()
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        data frame
+
+    Returns
+    -------
+    contents : dict
+        Each key is a set and the values is a list of the records in that set.
+
+    """
+
+    contents = {}
+    # Loop over the data frame's columns
+    for col in df.columns:
+        groups = df.groupby(by=col)
+        # Loop over the distinct values in this column
+        for name, group in groups:
+            # The column/value is a set. Store the records in it.
+            contents[col + '_' + str(name)] = group.index.tolist()
+
+        return contents
+
+def generate_set_data(num_rows, num_values):
+    """
+    This function generates a pandas DataFrame with num_rows number of rows and num_cols number of columns,
+    where each column contains the same set of num_values unique values.
+    The values are randomly shuffled before returning the DataFrame
+
+    Parameters
+    ----------
+    num_rows : int
+        The number of rows for the dataframe.
+    num_values : int
+        The number of unique values for each column of the dataframe.
+
+    Returns
+    -------
+    Dataframe : pandas DataFrame
+    The generated dataframe with the specified number of rows and columns containing the set of unique values, shuffled randomly.
+
+    """
+
+    values = []
+    nrows = 0
+
+    for vv in range(num_values):
+        # Calculate the number of rows that have this value
+        num = int((num_rows - nrows + num_values - vv - 1) / (num_values - vv))
+        # values = values + ['v0_' + str(vv)] * num
+        values = values + [str(vv)] * num
+        nrows = nrows + num
+
+    num_cols = 1
+    cols = ["v" + str(i) for i in range(num_cols)]
+    return pd.DataFrame.from_dict({cols[0]: values}).sample(frac=1).reset_index(drop=True)
