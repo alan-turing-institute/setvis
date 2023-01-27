@@ -5,9 +5,6 @@ from bokeh.plotting import figure, show
 from bokeh.models import (
     ColumnDataSource,
     DataRange1d,
-    LinearColorMapper,
-    tools,
-    CustomJS,
     HelpTool,
 )
 from bokeh.palettes import Oranges256
@@ -19,18 +16,13 @@ import bokeh.server
 import pandas as pd
 import numpy as np
 import logging
-import base64
-from weakref import WeakValueDictionary
-
-from IPython.display import Javascript, display
 
 from typing import Any, Sequence, List, Dict, Tuple
-from abc import ABC, abstractmethod
-from pace.membership import Membership
+from .membership import Membership
 
-# import pace.membership as membership
-from pace.history import SelectionHistory, Selection
-import pace.plotutils as plotutils
+# import .membership as membership
+from .history import SelectionHistory, Selection
+import .plotutils as plotutils
 
 
 # Set up logging
@@ -109,7 +101,7 @@ class SetBarChart(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart
@@ -245,7 +237,7 @@ class SetCardinalityHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included
         in the histogram
@@ -403,7 +395,7 @@ class IntersectionBarChart(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart
@@ -534,7 +526,7 @@ class IntersectionCardinalityHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the intersection cardinality histogram
@@ -667,7 +659,7 @@ class IntersectionDegreeHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the histogram
@@ -812,7 +804,7 @@ class IntersectionHeatmap(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart

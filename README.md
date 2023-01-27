@@ -92,7 +92,7 @@ cd setvis
 # Install the Bottleneck conda package and its dependencies
 conda install Bottleneck=1.3.2
 
-# Install pace itself and the remaining dependencies with pip
+# Install setvis itself and the remaining dependencies with pip
 pip install ".[all]"
 ```
 

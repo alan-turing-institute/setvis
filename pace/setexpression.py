@@ -7,7 +7,7 @@ expression, but can be evaluated by providing a way to look up a set's
 value from its name.
 
 It is used by PACE to filter based on matching intersections (see
-:func:`pace.membership.Membership.matching_intersections`).
+:func:`setvis.membership.Membership.matching_intersections`).
 
 A `SetExpr` is either:
 
@@ -89,7 +89,7 @@ from dataclasses import dataclass
 class SetExpr(ABC):
     """An abstract expression involving named sets
 
-    See the docstring on this module (:mod:`pace.setexpression`)
+    See the docstring on this module (:mod:`setvis.setexpression`)
     for details.
     """
 
