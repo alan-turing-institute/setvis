@@ -704,7 +704,8 @@ class Membership:
             # consistent with the constructor(s) from 'Format 1' csv files
             .rename(lambda x: "category@" + x, axis=1)
             .fillna(0.0)
-            .astype(int)
+            # Type is boolean (not int)
+            .astype(bool)
         )
         intersection_id_to_columns = mship_pivot.rename_axis("intersection_id")
 
