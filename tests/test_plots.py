@@ -4,15 +4,15 @@ from pathlib import Path
 import bokeh.plotting
 from pandas.util.testing import assert_frame_equal
 
-from pace.plots import (
+from setvis.plots import (
     PlotBase,
     PlotSession,
     SetBarChart,
     SetCardinalityHistogram,
     IntersectionBarChart
 )
-from pace.membership import Membership
-from pace.history import Selection
+from setvis.membership import Membership
+from setvis.history import Selection
 
 
 @pytest.fixture
