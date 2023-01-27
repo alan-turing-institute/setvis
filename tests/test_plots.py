@@ -107,5 +107,4 @@ def test_IntersectionBarChart(simpsons_format1):
     indi_to_sel = card_hist.plot_indices_to_selection(seq)
     # print(indi_to_sel)
     sel_to_indi = card_hist.selection_to_plot_indices(indi_to_sel)
-    # print(sel_to_indi)
     assert (seq == sel_to_indi)
