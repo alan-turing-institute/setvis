@@ -1,0 +1,81 @@
+element@TransactionID	Product
+transaction_1	Cigarettes/tobacco
+transaction_2	Cigarettes/tobacco
+transaction_3	Cigarettes/tobacco
+transaction_4	Cigarettes/tobacco
+transaction_5	Cigarettes/tobacco
+transaction_6	Cigarettes/tobacco
+transaction_7	Cigarettes/tobacco
+transaction_8	Cigarettes/tobacco
+transaction_9	Cigarettes/tobacco
+transaction_10	Cigarettes/tobacco
+transaction_11	Cigarettes/tobacco
+transaction_12	Cigarettes/tobacco
+transaction_13	Cigarettes/tobacco
+transaction_14	Cigarettes/tobacco
+transaction_15	Cigarettes/tobacco
+transaction_16	Cigarettes/tobacco
+transaction_17	Cigarettes/tobacco
+transaction_18	Cigarettes/tobacco
+transaction_19	Cigarettes/tobacco
+transaction_20	Cigarettes/tobacco
+transaction_21	National newspapers
+transaction_22	National newspapers
+transaction_23	National newspapers
+transaction_24	National newspapers
+transaction_25	National newspapers
+transaction_26	National newspapers
+transaction_27	National newspapers
+transaction_28	National newspapers
+transaction_29	National newspapers
+transaction_30	National newspapers
+transaction_31	Own label milk
+transaction_32	Own label milk
+transaction_33	Own label milk
+transaction_34	Own label milk
+transaction_35	Own label milk
+transaction_36	Own label milk
+transaction_37	Own label milk
+transaction_38	Own label milk
+transaction_39	Paypoint
+transaction_40	Paypoint
+transaction_41	Paypoint
+transaction_42	Paypoint
+transaction_43	Paypoint
+transaction_44	Paypoint
+transaction_45	Soft Drinks Chiller
+transaction_46	Soft Drinks Chiller
+transaction_47	Soft Drinks Chiller
+transaction_48	Soft Drinks Chiller
+transaction_49	Soft Drinks Chiller
+transaction_50	Soft Drinks Chiller
+transaction_51	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_52	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_53	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_54	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_55	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_56	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_57	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_58	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_59	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_60	"Cigarettes/tobacco,Soft Drinks Chiller"
+transaction_61	"Own label milk,Bread"
+transaction_62	"Own label milk,Bread"
+transaction_63	"Own label milk,Bread"
+transaction_64	"Own label milk,Bread"
+transaction_65	"Own label milk,Bread"
+transaction_66	"Own label milk,Bread"
+transaction_67	"Own label milk,Bread"
+transaction_68	"Own label milk,Bread"
+transaction_69	"National newspapers,Own label milk"
+transaction_70	"National newspapers,Own label milk"
+transaction_71	"National newspapers,Own label milk"
+transaction_72	"National newspapers,Own label milk"
+transaction_73	"National newspapers,Own label milk"
+transaction_74	"National newspapers,Own label milk"
+transaction_75	"National newspapers,Lottery Draws"
+transaction_76	"National newspapers,Lottery Draws"
+transaction_77	"National newspapers,Lottery Draws"
+transaction_78	"National newspapers,Lottery Draws"
+transaction_79	"Cigarettes/tobacco,National newspapers"
+transaction_80	"Cigarettes/tobacco,National newspapers"
