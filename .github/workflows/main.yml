@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
     - name: Checkout code
@@ -39,8 +39,8 @@ jobs:
       run: |
         poetry run pytest
 
-    - name: Notebooks [Linux]
-      if: runner.os == 'Linux'
+    - name: Notebooks [Linux and macOS]
+      if: runner.os != 'Windows'
       run: |
         pip install -e '.[all]'
         mkdir -p ../_notebook-output
