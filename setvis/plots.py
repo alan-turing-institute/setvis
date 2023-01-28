@@ -22,7 +22,7 @@ from .membership import Membership
 
 # import .membership as membership
 from .history import SelectionHistory, Selection
-import .plotutils as plotutils
+import setvis.plotutils as plotutils
 
 
 # Set up logging

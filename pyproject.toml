@@ -3,7 +3,7 @@ line-length = 79
 
 [tool.poetry]
 name = "setvis"
-packages = [{ include = "pace" }]
+packages = [{ include = "setvis" }]
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
