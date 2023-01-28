@@ -46,3 +46,23 @@ jobs:
         mkdir -p ../_notebook-output
         cd tests && bash check_notebooks.sh
 
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: build
+    if: success() && !is_pull_request()
+    env:
+      GH_PAGES_BRANCH: gh-pages
+      GH_PAGES_DIR: docs/_build/html
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ${{ env.GH_PAGES_DIR }}
+        publish_branch: ${{ env.GH_PAGES_BRANCH }}
