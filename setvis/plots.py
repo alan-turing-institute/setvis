@@ -43,10 +43,10 @@ class PlotBase:
         """Maps a ``Selection`` to the corresponding bin indices of the
         histogram.
 
-        PACE understands items selected in a ``Membership`` object in form
+        setvis understands items selected in a ``Membership`` object in form
         of records, columns or intersections, while Bokeh uses numeric indices to
         identify the elements of a plot (e.g. bars, fields in a heatmap).
-        This converts such PACE ``Selection`` object into a list of corresponding
+        This converts such setvis ``Selection`` object into a list of corresponding
         Bokeh indices. This conversion is specific to a plot type.
 
         Parameters
@@ -59,7 +59,7 @@ class PlotBase:
         -------
 
         Sequence[int]
-            Bokeh indices of the plot elements that correspond to the PACE selection.
+            Bokeh indices of the plot elements that correspond to the setvis selection.
 
         Raises
         ------
@@ -76,7 +76,7 @@ class PlotBase:
         To identify the elements of a plot (e.g. bars, fields in a heatmap),
         Bokeh indexes them in a numeric way. This converts the
         list of selected Bokeh indices into a selection of records, columns
-        or intersections understood by PACE. This conversion is specific to
+        or intersections understood by setvis. This conversion is specific to
         a plot type.
 
         Parameters
@@ -1270,7 +1270,7 @@ class PlotSession:
             tabs.on_change("active", active_tab_callback)
 
             doc.add_root(tabs)
-            doc.title = "PACE: " + name
+            doc.title = "setvis: " + name
 
         if self._verbose:
             logging.info(

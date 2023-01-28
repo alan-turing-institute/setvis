@@ -6,7 +6,7 @@ A `SetExpr` is a completely abstract representation of such an
 expression, but can be evaluated by providing a way to look up a set's
 value from its name.
 
-It is used by PACE to filter based on matching intersections (see
+It is used by setvis to filter based on matching intersections (see
 :func:`setvis.membership.Membership.matching_intersections`).
 
 A `SetExpr` is either:
