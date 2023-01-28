@@ -49,7 +49,7 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     needs: build
-    if: success() && !is_pull_request()
+    if: success() && github.event_name != 'pull_request'
     env:
       GH_PAGES_BRANCH: gh-pages
       GH_PAGES_DIR: docs/_build/html
