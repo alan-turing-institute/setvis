@@ -1,5 +1,5 @@
-PACE fundamentals and the Membership class
+setvis fundamentals and the Membership class
 ==========================================
 
-.. automodule:: pace.membership
+.. automodule:: setvis.membership
    :members:

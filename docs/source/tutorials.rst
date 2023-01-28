@@ -1,13 +1,13 @@
 Tutorials
 =========
 
-The PACE repository includes some tutorials and extended examples in
+The setvis repository includes some tutorials and extended examples in
 the form of Jupyter notebooks.  The tutorials are designed to
-introduce PACE concepts and be run interactively.
+introduce setvis concepts and be run interactively.
 
 This section describes how to install and run these.
 
-The source for all notebooks can be found `within the PACE GitHub
+The source for all notebooks can be found `within the setvis GitHub
 repository
 <https://github.com/alan-turing-institute/visualising-data-profiles/tree/main/notebooks>`_.
 
@@ -17,7 +17,7 @@ Install and run the notebooks
 
 To access the tutorials, after setting up a suitable python
 environment (see the :ref:`relevant section of the installation
-instructions <python-env-setup>`), clone and install PACE from GitHub
+instructions <python-env-setup>`), clone and install setvis from GitHub
 source.
 
 .. code:: bash
@@ -28,7 +28,7 @@ source.
 
 
 Then run the command below to install the ``notebook`` extra dependency
-set, which will include everything required to run PACE in a notebook,
+set, which will include everything required to run setvis in a notebook,
 and to run the tutorial examples that do not need a database
 connection.
 
@@ -52,8 +52,8 @@ notebooks in the ``notebooks`` directory of the repository:
 
 .. warning::
 
-   The Bokeh plots produced by PACE require the package ``notebook``
-   with version **>= 6.4** in order to display properly.  If PACE is
+   The Bokeh plots produced by setvis require the package ``notebook``
+   with version **>= 6.4** in order to display properly.  If setvis is
    installed as described above, this will be included automatically.
-   If using a 'minimal' PACE installation alongside an existing
+   If using a 'minimal' setvis installation alongside an existing
    notebook installation, please ensure that this requirement is met.

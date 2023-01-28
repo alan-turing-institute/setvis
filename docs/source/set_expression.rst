@@ -1,7 +1,7 @@
 Set Expressions
 ===============
 
-.. automodule:: pace.setexpression
+.. automodule:: setvis.setexpression
    :members:
    :show-inheritance:
    :member-order: bysource
