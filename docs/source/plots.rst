@@ -1,6 +1,6 @@
 Plotting and interactivity
 ==========================
 
-.. automodule:: pace.plots
+.. automodule:: setvis.plots
    :members:
 

@@ -2,8 +2,8 @@
 line-length = 79
 
 [tool.poetry]
-name = "visualising-data-profiles"
-packages = [{ include = "pace" }]
+name = "setvis"
+packages = [{ include = "setvis" }]
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]

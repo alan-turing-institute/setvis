@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'PACE'
+project = 'setvis'
 copyright = '2021, pwochner, ots22, raruddle'
 author = 'pwochner, ots22, raruddle'
 

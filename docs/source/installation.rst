@@ -1,4 +1,4 @@
-.. _installation-instructions: 
+.. _installation-instructions:
 
 Installation instructions
 =========================
@@ -8,14 +8,14 @@ Installation instructions
 Setting up the environment
 --------------------------
 
-PACE places relatively few requirements on the system environment it
+Setvis places relatively few requirements on the system environment it
 is installed in.  It is recommended to use a Python installation based
 on a virtual environment or Conda.  This could be as part of an
-existing project, or one set up specifically for running PACE by
+existing project, or one set up specifically for running setvis by
 following one of the configurations below.
 
 Once you are happy with your environmental set-up, continue to
-:ref:`installing-pace`.
+:ref:`installing-setvis`.
 
 
 Conda
@@ -42,7 +42,7 @@ This configuration has been tested with:
    conda install Bottleneck=1.3.2
 
 
-Next, :ref:`install PACE <installing-pace>`.
+Next, :ref:`install setvis <installing-setvis>`.
 
 
 Python venv (virtual environment)
@@ -54,11 +54,11 @@ This configuration has been tested with:
 
 .. code:: bash
 
-   # Create a virtual environment, in a new directory 'pace-venv'
-   python -m venv pace-venv
+   # Create a virtual environment, in a new directory 'setvis-venv'
+   python -m venv setvis-venv
 
    # Use the following command to activate the venv
-   source pace-venv/bin/activate
+   source setvis-venv/bin/activate
 
    # Upgrade pip once working inside
    pip install --upgrade pip
@@ -67,13 +67,13 @@ This configuration has been tested with:
 - `Python documentation on virtual environments <https://docs.python.org/3/tutorial/venv.html>`_
 
 
-Next, :ref:`install PACE <installing-pace>`.
+Next, :ref:`install setvis <installing-setvis>`.
 
 
-.. _installing-pace:
+.. _installing-setvis:
 
-Installing PACE
----------------
+Installing setvis
+-----------------
 
 Once your environment is set up and activated, and follow one of the
 sets of instructions below.
@@ -104,7 +104,7 @@ Most users should then run
 
    pip install ".[extra]"
 
-which will install PACE and most of the optional extra dependencies.
+which will install setvis and most of the optional extra dependencies.
 
 
 Alternatively, run
@@ -113,13 +113,13 @@ Alternatively, run
 
    pip install .
 
-which will include PACE and a minimal set of dependencies.
+which will include setvis and a minimal set of dependencies.
 
 The part of the package in square brackets above ('[extra]') is a pip
 `dependency extra <https://peps.python.org/pep-0508/#extras>`_ for
 selecting optional extra packages to install. See the :ref:`next
 section <package-extras>` for a full list of these options, which can
-be used to configure the PACE installation.
+be used to configure the setvis installation.
 
 
 .. _package-extras:
@@ -128,7 +128,7 @@ Extras and fine-tuning the installation
 .......................................
 
 This section applies whatever the source of the installation (from
-PyPI or GitHub).  PACE supports several optional features that can be
+PyPI or GitHub).  Setvis supports several optional features that can be
 installed by passing various extra dependency flags to pip.
 
 For instance: ``pip install ".[notebook]"`` (which installs the
@@ -159,13 +159,13 @@ environment where the package is to be installed:
 
 
 
-Installing PACE with Poetry (developers)
+Installing setvis with Poetry (developers)
 ----------------------------------------
 
 This project uses `Poetry <https://python-poetry.org/>`_ for
-dependency management and packaging.  To contribute to PACE
+dependency management and packaging.  To contribute to setvis
 development, follow the instructions below to set up a virtual
-environment containing PACE and its dependencies.  See the `poetry
+environment containing setvis and its dependencies.  See the `poetry
 documentation <https://python-poetry.org/docs/>`_ for how to use this
 for dependency management.
 

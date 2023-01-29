@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Col(Set):
-    """An alias for :class:`~pace.setexpression.Set`, used when referring
+    """An alias for :class:`~setvis.setexpression.Set`, used when referring
     to a 'column' (hence, Col) rather than a 'set' is more natural, for
     example, when referring to the set of elements with missing data in a
     particular column.

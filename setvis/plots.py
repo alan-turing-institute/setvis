@@ -5,9 +5,6 @@ from bokeh.plotting import figure, show
 from bokeh.models import (
     ColumnDataSource,
     DataRange1d,
-    LinearColorMapper,
-    tools,
-    CustomJS,
     HelpTool,
 )
 from bokeh.palettes import Oranges256
@@ -19,18 +16,13 @@ import bokeh.server
 import pandas as pd
 import numpy as np
 import logging
-import base64
-from weakref import WeakValueDictionary
-
-from IPython.display import Javascript, display
 
 from typing import Any, Sequence, List, Dict, Tuple
-from abc import ABC, abstractmethod
-from pace.membership import Membership
+from .membership import Membership
 
-# import pace.membership as membership
-from pace.history import SelectionHistory, Selection
-import pace.plotutils as plotutils
+# import .membership as membership
+from .history import SelectionHistory, Selection
+import setvis.plotutils as plotutils
 
 
 # Set up logging
@@ -51,10 +43,10 @@ class PlotBase:
         """Maps a ``Selection`` to the corresponding bin indices of the
         histogram.
 
-        PACE understands items selected in a ``Membership`` object in form
+        Setvis understands items selected in a ``Membership`` object in form
         of records, columns or intersections, while Bokeh uses numeric indices to
         identify the elements of a plot (e.g. bars, fields in a heatmap).
-        This converts such PACE ``Selection`` object into a list of corresponding
+        This converts such setvis ``Selection`` object into a list of corresponding
         Bokeh indices. This conversion is specific to a plot type.
 
         Parameters
@@ -67,7 +59,7 @@ class PlotBase:
         -------
 
         Sequence[int]
-            Bokeh indices of the plot elements that correspond to the PACE selection.
+            Bokeh indices of the plot elements that correspond to the setvis selection.
 
         Raises
         ------
@@ -84,7 +76,7 @@ class PlotBase:
         To identify the elements of a plot (e.g. bars, fields in a heatmap),
         Bokeh indexes them in a numeric way. This converts the
         list of selected Bokeh indices into a selection of records, columns
-        or intersections understood by PACE. This conversion is specific to
+        or intersections understood by setvis. This conversion is specific to
         a plot type.
 
         Parameters
@@ -109,7 +101,7 @@ class SetBarChart(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart
@@ -245,7 +237,7 @@ class SetCardinalityHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included
         in the histogram
@@ -403,7 +395,7 @@ class IntersectionBarChart(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart
@@ -534,7 +526,7 @@ class IntersectionCardinalityHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the intersection cardinality histogram
@@ -667,7 +659,7 @@ class IntersectionDegreeHistogram(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the histogram
@@ -812,7 +804,7 @@ class IntersectionHeatmap(PlotBase):
     Parameters
     ----------
     data : Membership
-        a :class:`~pace.membership.Membership` object
+        a :class:`~setvis.membership.Membership` object
     initial_selection : Selection
         initial selection of items in the membership object to be included in
         the set bar chart
@@ -1278,7 +1270,7 @@ class PlotSession:
             tabs.on_change("active", active_tab_callback)
 
             doc.add_root(tabs)
-            doc.title = "PACE: " + name
+            doc.title = "setvis: " + name
 
         if self._verbose:
             logging.info(

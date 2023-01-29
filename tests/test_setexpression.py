@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from pace.setexpression import SetExpr, Set, Union, Intersect, Diff, SymDiff, Complement
+from setvis.setexpression import SetExpr, Set, Union, Intersect, Diff, SymDiff, Complement
 
 
 ## Some mappings from names to sets (with different representations)
@@ -68,6 +68,6 @@ def test_eval(names, expr, expected):
         expr.evaluate(lookup_name=names.get),
         expected
     )
-        
+
 
 
