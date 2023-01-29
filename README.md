@@ -1,6 +1,6 @@
 # setvis [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
 
-A tool for visualising patterns of missingness in data. `setvis` is matrix-based set visualization that operates with datasets using a memory-efficient architecture.
+A tool for visualising patterns of missingness in data. Setvis is matrix-based set visualization that operates with datasets using a memory-efficient architecture.
 
 ## Installation
 
@@ -28,7 +28,8 @@ Then run either:
 ```
 pip install ".[extra]"
 ```
-which will install `setvis` and most of the optional extra dependencies
+
+which will install setvis and most of the optional extra dependencies
 
 or run:
 
@@ -58,10 +59,10 @@ The following dependencies place additional requirements on the environment wher
 
 #### Running the tutorial notebooks
 
-The Bokeh plots produced by `setvis` require the package `notebook >= 6.4` to display properly.
+The Bokeh plots produced by setvis require the package `notebook >= 6.4` to display properly.
 
 Installing the `notebook` extra dependency set (see above) will include everything
-required to run `setvis` in a notebook, and to run the tutorial examples
+required to run setvis in a notebook, and to run the tutorial examples
 that do not need a database connection. For the latter, install `db`
 as well.
 
@@ -118,4 +119,4 @@ poetry shell
 
 ## Acknowledgements
 
-The development of the `setvis` software was supported by funding from the Engineering and Physical Sciences Research Council (EP/N013980/1; EP/K503836/1) and the Alan Turing Institute.
+The development of the setvis software was supported by funding from the Engineering and Physical Sciences Research Council (EP/N013980/1; EP/K503836/1) and the Alan Turing Institute.

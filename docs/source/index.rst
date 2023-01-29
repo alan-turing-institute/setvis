@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to setvis's documentation!
-================================
+Setvis Documentation Index
+==========================
 
-setvis is a python package for exploring and visualizing data
+Setvis is a python package for exploring and visualizing data
 missingness (that is, the presence, number and pattern of `missing
 data <https://en.wikipedia.org/wiki/Missing_data>`_ in a dataset).
 

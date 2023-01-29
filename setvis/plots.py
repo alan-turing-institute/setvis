@@ -43,7 +43,7 @@ class PlotBase:
         """Maps a ``Selection`` to the corresponding bin indices of the
         histogram.
 
-        setvis understands items selected in a ``Membership`` object in form
+        Setvis understands items selected in a ``Membership`` object in form
         of records, columns or intersections, while Bokeh uses numeric indices to
         identify the elements of a plot (e.g. bars, fields in a heatmap).
         This converts such setvis ``Selection`` object into a list of corresponding

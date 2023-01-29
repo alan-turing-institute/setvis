@@ -8,7 +8,7 @@ Installation instructions
 Setting up the environment
 --------------------------
 
-setvis places relatively few requirements on the system environment it
+Setvis places relatively few requirements on the system environment it
 is installed in.  It is recommended to use a Python installation based
 on a virtual environment or Conda.  This could be as part of an
 existing project, or one set up specifically for running setvis by
@@ -73,7 +73,7 @@ Next, :ref:`install setvis <installing-setvis>`.
 .. _installing-setvis:
 
 Installing setvis
----------------
+-----------------
 
 Once your environment is set up and activated, and follow one of the
 sets of instructions below.
@@ -128,7 +128,7 @@ Extras and fine-tuning the installation
 .......................................
 
 This section applies whatever the source of the installation (from
-PyPI or GitHub).  setvis supports several optional features that can be
+PyPI or GitHub).  Setvis supports several optional features that can be
 installed by passing various extra dependency flags to pip.
 
 For instance: ``pip install ".[notebook]"`` (which installs the
