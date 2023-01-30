@@ -127,7 +127,7 @@ class SelectionHistory:
     * a list of items to exclude from the parent.
 
     These named selections form a tree.  The root of the tree is the
-    initial :class:`~pace.membership.Membership` instance, passed to
+    initial :class:`~setvis.membership.Membership` instance, passed to
     the constructor as `membership`, and may be referred to be the
     special name, ``None``.
 
@@ -138,7 +138,7 @@ class SelectionHistory:
     Parameters
     ----------
     membership : Membership
-        The initial :class:`~pace.membership.Membership` object
+        The initial :class:`~setvis.membership.Membership` object
 
     selections : Optional[Dict[str, SubSelection]] = None
         Optionally, a dictionary containing the selection history
@@ -170,7 +170,7 @@ class SelectionHistory:
 
         This contains the items to **exclude** from the *parent* of
         the named selection.
-        
+
         Parameters
         ----------
         name : str
@@ -209,7 +209,7 @@ class SelectionHistory:
         this is left to the caller.
 
         """
-        
+
         self._selections[name].exclude = exclude
 
     def parent(self, name: str):
@@ -220,16 +220,16 @@ class SelectionHistory:
 
     def ancestors(self, name):
         """Return all ancestors of the named selection
-        
+
         ``ancestors`` is the transitive closure of ``parent``
         """
-        
+
         return list(iterated_apply(self.parent, name))
 
     def membership(self, name: Optional[str] = None):
         """
-        Return the membership instance associated with 
-        
+        Return the membership instance associated with
+
         This is constructed on the fly.
 
         Parameters

@@ -3,7 +3,7 @@ import numpy as np
 from .setexpression import Set
 import logging
 from typing import Tuple  # Sequence, Callable, Optional, Any, List, Tuple
-from pace.membership import Membership
+from .membership import Membership
 
 # Set up logging
 logger = logging.getLogger(__name__)

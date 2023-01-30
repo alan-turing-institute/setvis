@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 from pandas import NA
-from pace.membership import Membership
-from pace.history import SelectionHistory, Selection
+from setvis.membership import Membership
+from setvis.history import SelectionHistory, Selection
 
 
 def example_df():

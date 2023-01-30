@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from pace.membership import Membership, Col
+from setvis.membership import Membership, Col
 
 
 @pytest.fixture

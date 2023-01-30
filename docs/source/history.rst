@@ -1,7 +1,7 @@
 Selections and Selection History
 ================================
 
-.. automodule:: pace.history
+.. automodule:: setvis.history
    :members:
    :special-members: __getitem__, __setitem__
 
