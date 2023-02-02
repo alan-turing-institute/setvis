@@ -57,22 +57,6 @@ The following dependencies place additional requirements on the environment wher
  - `db`: to support the database interface (currently just [psycopg2](https://www.psycopg.org/docs/)). **Requires an installation of PostgreSQL**.
 
 
-#### Running the tutorial notebooks
-
-The Bokeh plots produced by setvis require the package `notebook >= 6.4` to display properly.
-
-Installing the `notebook` extra dependency set (see above) will include everything
-required to run setvis in a notebook, and to run the tutorial examples
-that do not need a database connection. For the latter, install `db`
-as well.
-
-If the installation succeeded, it should be possible to run the
-notebooks in the `notebooks` directory of the repository:
-
-```
-python -m jupyter notebook
-```
-
 ### Conda
 
 These instructions have been tested with:
@@ -80,8 +64,8 @@ These instructions have been tested with:
 
 ```posh
 # Create an activate a conda environment
-conda create -n paceenv python=3.8
-conda activate paceenv
+conda create -n setvisenv python=3.8
+conda activate setvisenv
 
 # This is unnecessary if git is already installed
 conda install git
@@ -115,6 +99,26 @@ poetry install
 
 # Activate the virtual environment
 poetry shell
+```
+
+#### Tutorials
+
+For basic examples, please see the two example notebooks:
+- [Missingness example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb)
+- [Set example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20sets.ipynb)
+
+The Bokeh plots produced by setvis require the package `notebook >= 6.4` to display properly.
+
+Installing the `notebook` extra dependency set (see above) will include everything
+required to run setvis in a notebook, and to run the tutorial examples
+that do not need a database connection. The repository includes GitHub actions script which executres
+all of the notebooks in the `notebooks` directory.
+
+If the installation succeeded, it should be possible to run the
+notebooks in the `notebooks` directory of the repository:
+
+```
+python -m jupyter notebook
 ```
 
 ## Acknowledgements
