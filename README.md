@@ -101,7 +101,7 @@ poetry install
 poetry shell
 ```
 
-#### Tutorials
+## Tutorials
 
 For basic examples, please see the two example notebooks:
 - [Missingness example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb)
