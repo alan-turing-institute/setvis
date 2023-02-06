@@ -9,7 +9,7 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=3.10.9"
+python = ">=3.8,<3.11"
 bokeh = "^2.3"
 numpy = "^1.21"
 pandas = "^1.3"
