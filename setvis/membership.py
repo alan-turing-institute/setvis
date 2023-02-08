@@ -755,7 +755,7 @@ class Membership:
         conn,
         relation: str,
         key: str,
-        schema: Optional[str] = None,
+        schema: Optional[str] = 'public',
     ) -> "Membership":
         """Construct a Membership object from a postgres database connection.
 
@@ -784,7 +784,7 @@ class Membership:
             the name of the column to use as the 'record id' (must be a unique key)
         schema: Optional[str]
             the name of the schema to which the relation belongs
-            (default of ``None``, meaning the public schema)
+            (default of ``public``, meaning the public schema).
 
         """
         from psycopg2 import sql
