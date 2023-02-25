@@ -42,6 +42,4 @@ jobs:
       if: runner.os == 'Linux' && matrix.python-version == '3.8'
       run: |
         pip install -e '.[all]'
-        mkdir -p ../_notebook-output
         cd tests && bash check_notebooks.sh
-
