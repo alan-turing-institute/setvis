@@ -1,6 +1,7 @@
-# setvis [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
+# setvis
 
-A tool for visualising patterns of missingness in data. Setvis is matrix-based set visualization that operates with datasets using a memory-efficient architecture.
+[![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
+[![Documentation Status](https://readthedocs.org/projects/setvis/badge/?version=latest)](https://setvis.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation
 
