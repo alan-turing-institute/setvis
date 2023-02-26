@@ -126,7 +126,7 @@ Alternatively, run
 
    pip install .
 
-which will include setvis and a minimal set of dependencies.
+which will install setvis and a minimal set of dependencies.
 
 The part of the package in square brackets above ('[extra]') is a pip
 `dependency extra <https://peps.python.org/pep-0508/#extras>`_ for
