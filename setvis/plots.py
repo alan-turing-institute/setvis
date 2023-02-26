@@ -152,10 +152,8 @@ class SetBarChart(PlotBase):
             "reset",
             "save",
             HelpTool(
-                redirect="https://github.com/alan-turing-institute/visualising-data-profiles/#link-to-docs-page",
-                description="""SetBarChart
-
-Extended description ...""",
+                redirect="https://setvis.readthedocs.io/en/latest/plots.html#setvis.plots.IntersectionBarChart",
+                description="SetBarChart",
             ),
         ]
         self.title = "Set bar chart" if set_mode else "Value bar chart"
