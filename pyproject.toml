@@ -7,6 +7,7 @@ packages = [{ include = "setvis" }]
 version = "0.1rc2"
 description = "Visualize set membership and missing data"
 authors = [
+    "The Setvis Maintainers",
     "Layik Hama <L.Hama@leeds.ac.uk>",
     "Roy Ruddle <R.A.Ruddle@leeds.ac.uk>",
     "Oliver Strickson <ostrickson@turing.ac.uk>",
@@ -19,6 +20,8 @@ repository = "https://github.com/alan-turing-institute/setvis"
 classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Visualization",
+    "Intended Audience :: Science/Research",
+    "Framework :: Jupyter"
 ]
 
 [tool.poetry.dependencies]
