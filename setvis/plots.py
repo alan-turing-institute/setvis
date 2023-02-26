@@ -1063,14 +1063,11 @@ class PlotSession:
         m = self._selection_history.membership(parent)
         selection = self._selection_history[name]
 
-        kwargs_plot = kwargs.get(tabname, {})
-        kwargs_plot.setdefault("sizing_mode", "stretch_both")
-
-        sort_x_by = kwargs_plot.pop("sort_x_by", None)
-        sort_x_order = kwargs_plot.pop("sort_x_order", None)
-        sort_y_by = kwargs_plot.pop("sort_y_by", None)
-        sort_y_order = kwargs_plot.pop("sort_y_order", None)
-        bins = kwargs_plot.pop("bins", None)
+        sort_x_by = kwargs.pop("sort_x_by", None)
+        sort_x_order = kwargs.pop("sort_x_order", None)
+        sort_y_by = kwargs.pop("sort_y_by", None)
+        sort_y_order = kwargs.pop("sort_y_order", None)
+        bins = kwargs.pop("bins", None)
 
         plotter = plotter_cls(
             m,
@@ -1087,13 +1084,21 @@ class PlotSession:
             new_selection = plotter.plot_indices_to_selection(indices)
             self._selection_history[name] = new_selection
 
-        # E.g. a call to add_plot like this:
-        #   session.add_plot(..., tabname={y_axis_type="log"})
-        # would result in plotter.plot getting called as
-        #   plotter.plot(y_axis_type="log")
+        # Merge the relevant 'plot_options' for this tab, into kwargs
+        # (which will apply to all tabs)
         #
+        # Thus a call to add_plot like this:
+        #   session.add_plot(..., plot_options={tabname: {'y_axis_type': 'log'}})
+        # would result in plotter.plot getting called as
+        #   plotter.plot(y_axis_type='log')
 
-        p = plotter.plot(**kwargs_plot)
+        plot_options = kwargs.pop("plot_options", {})
+        plot_options = plot_options.get(tabname, {})
+        plot_options.setdefault("sizing_mode", "stretch_both")
+
+        kwargs.update(plot_options)
+
+        p = plotter.plot(**kwargs)
         p.on_event(SelectionGeometry, selection_callback)
 
         return p
@@ -1187,7 +1192,7 @@ class PlotSession:
         def plot_app(doc):
             """Creates all the plot options and shows them in a tab layout"""
             p1 = self._add_subplot(
-                SetBarChart, name, "set_bar_chart", **kwargs
+                SetBarChart, name, "set_bar_chart", **kwargs,
             )
             tab1 = Panel(
                 child=p1,
