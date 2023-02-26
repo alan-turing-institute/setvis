@@ -5,8 +5,20 @@ line-length = 79
 name = "setvis"
 packages = [{ include = "setvis" }]
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Visualize set membership and missing data"
+authors = [
+    "Layik Hama <L.Hama@leeds.ac.uk>",
+    "Roy Ruddle <R.A.Ruddle@leeds.ac.uk>",
+    "Oliver Strickson <ostrickson@turing.ac.uk>",
+    "Pam Wochner <pwochner@turing.ac.uk>"
+]
+readme = "README.md"
+license = "Apache-2.0"
+repository = "https://github.com/alan-turing-institute/setvis"
+classifiers = [
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
