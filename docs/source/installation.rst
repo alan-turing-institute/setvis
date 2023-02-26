@@ -83,7 +83,20 @@ Installing from PyPI
 
 This will be the preferred method for most users when the package has been released on PyPI.
 
-(TODO)
+Most users should run:
+
+.. code:: bash
+
+   pip install "setvis[extra]"
+
+
+Alternatively, run
+
+.. code:: bash
+
+   pip install setvis
+
+which will install setvis and a minimal set of dependencies.
 
 
 Installing from GitHub
