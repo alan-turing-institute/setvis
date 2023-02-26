@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'setvis'
-copyright = '2021, pwochner, ots22, raruddle'
-author = 'pwochner, ots22, raruddle'
+copyright = '2021-23, the authors'
+author = 'Layik Hama, Roy Ruddle, Oliver Strickson, Pam Wochner'
 
 
 # -- General configuration ---------------------------------------------------
