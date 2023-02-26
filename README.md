@@ -3,104 +3,30 @@
 [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/setvis/badge/?version=latest)](https://setvis.readthedocs.io/en/latest/?badge=latest)
 
-## Installation
+Setvis is a python library for visualising set membership and patterns of missingness in data.
 
-### Pip
+It can be used both programmatically and via interactive Bokeh widgets.  It operates on data using a memory efficient architecture, and supports loading data from flat files, Pandas dataframes, and directly from Postgres databases.
 
-#### Installing the module
+## Documentation
 
-These instructions have been tested with:
-- Python 3.8.2 on MacOS 10.15 (Catalina)
+[The setvis documentation](https://setvis.readthedocs.io/en/latest/index.html) is hosted on Read the Docs.
 
-```
-git clone https://github.com/alan-turing-institute/setvis
+## Installation (quick start)
 
-cd setvis
+**For the complete installation instructions, consult [the installation page of the documentation](https://setvis.readthedocs.io/en/latest/installation.html), which includes information on some extra installation options and setting up a suitable environment on several platforms.**
 
-python -m venv .venv
+We recommend installing setvis in a python virtual environment or Conda environment.
 
-source .venv/bin/activate
-
-pip install --upgrade pip
-```
-
-Then run either:
+To install setvis, most users should run:
 
 ```
-pip install ".[extra]"
+pip install 'setvis[notebook]'
 ```
 
-which will install setvis and most of the optional extra dependencies
+This will include everything to run setvis in a notebook, and to run the tutorial examples that do not need a database connection.
 
-or run:
+The Bokeh plots produced by setvis require the package `notebook >= 6.4` to display properly.  This will be included when installing setvis using the command above.
 
-```
-pip install .
-```
-
-which will include just setvis and a minimal set of dependencies.
-
-
-#### Extras and fine-tuning the installation
-
-There are several dependency flags that can be passed to pip to install
-various optional dependencies.  For instance: `pip install ".[notebook]"` (which installs the notebook dependencies).
-
- - `extra`: `[extra]` is the same as `[notebook,doc,test]`
- - `all`: `[all]` is the same as `[notebook,doc,test,performance-extras,db]` (includes all of the below)
-
- - `notebook`: for the functionality required by the notebook examples
- - `doc`: sphinx and other libraries for building the documentation
- - `test`: pytest and other libraries for running the tests
-
-The following dependencies place additional requirements on the environment where the package is to be installed:
- - `performance-extras`: [numexpr](https://numexpr.readthedocs.io/projects/NumExpr3/en/latest/) and [Bottleneck](https://bottleneck.readthedocs.io/en/latest/), for improving the performance of numerical computations. **Requires a C compiler**: see [Bottleneck requirements](https://bottleneck.readthedocs.io/en/latest/intro.html#install)
- - `db`: to support the database interface (currently just [psycopg2](https://www.psycopg.org/docs/)). **Requires an installation of PostgreSQL**.
-
-
-### Conda
-
-These instructions have been tested with:
-- [Miniconda3](https://docs.conda.io/en/latest/miniconda.html) (based on Conda 4.10.3) with Python 3.8 on Windows 10 Pro 20H2
-
-```posh
-# Create an activate a conda environment
-conda create -n setvisenv python=3.8
-conda activate setvisenv
-
-# This is unnecessary if git is already installed
-conda install git
-
-# Clone this repository
-git clone https://github.com/alan-turing-institute/setvis
-cd setvis
-
-# Install the Bottleneck conda package and its dependencies
-conda install Bottleneck=1.3.2
-
-# Install setvis itself and the remaining dependencies with pip
-pip install ".[all]"
-```
-
-If the commands above succeed, it should be possible to run the notebooks in `notebooks`, with
-
-```
-jupyter notebook notebooks
-```
-
-### Poetry
-
-```
-# Clone this repository
-git clone https://github.com/alan-turing-institute/setvis
-cd setvis
-
-# Install this project and its dependencies into a virtual environment
-poetry install
-
-# Activate the virtual environment
-poetry shell
-```
 
 ## Tutorials
 
@@ -108,19 +34,14 @@ For basic examples, please see the two example notebooks:
 - [Missingness example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb)
 - [Set example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20sets.ipynb)
 
-The Bokeh plots produced by setvis require the package `notebook >= 6.4` to display properly.
+There are a series of Tutorials notebooks, starting with [Tutorial 1](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Tutorial%201%20-%20Overview%20and%20an%20example%20analysis.ipynb).
 
-Installing the `notebook` extra dependency set (see above) will include everything
-required to run setvis in a notebook, and to run the tutorial examples
-that do not need a database connection. The repository includes GitHub actions script which executres
-all of the notebooks in the `notebooks` directory.
-
-If the installation succeeded, it should be possible to run the
-notebooks in the `notebooks` directory of the repository:
+After installing setvis, to follow theses tutorials interactively you will need to clone or download this repository. Then start jupyter within it:
 
 ```
-python -m jupyter notebook
+python -m jupyter notebook notebooks
 ```
+
 
 ## Acknowledgements
 
