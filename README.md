@@ -34,9 +34,9 @@ For basic examples, please see the two example notebooks:
 - [Missingness example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb)
 - [Set example](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20sets.ipynb)
 
-There are a series of Tutorials notebooks, starting with [Tutorial 1](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Tutorial%201%20-%20Overview%20and%20an%20example%20analysis.ipynb).
+Additionally, there is a series of Tutorials notebooks, starting with [Tutorial 1](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Tutorial%201%20-%20Overview%20and%20an%20example%20analysis.ipynb).
 
-After installing setvis, to follow theses tutorials interactively you will need to clone or download this repository. Then start jupyter within it:
+After installing setvis, to follow theses tutorials interactively you will need to clone or download this repository. Then start jupyter from within it:
 
 ```
 python -m jupyter notebook notebooks
