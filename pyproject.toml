@@ -4,7 +4,7 @@ line-length = 79
 [tool.poetry]
 name = "setvis"
 packages = [{ include = "setvis" }]
-version = "0.1rc2"
+version = "0.1rc3"
 description = "Visualize set membership and missing data"
 authors = [
     "The Setvis Maintainers",
