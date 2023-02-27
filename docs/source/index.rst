@@ -31,15 +31,39 @@ Contents
    :maxdepth: 2
 
    installation
-   overview
    tutorials
    documentation
    api_reference
 
-Examples
-========
+Introductory Example
+====================
 
-Put a couple of simple examples here
+A quick example showing the output of setvis when run in a notebook.
+
+See the :ref:`tutorials and example notebooks <tutorials>` for further
+examples, and an explanation of the plots and user interface.
+
+The output is an interactive widget in the notebook (the user has
+chosen the 'combination heatmap' view - see
+:meth:`setvis.plots.IntersectionHeatmap`). The selected data can be
+refined by choosing elements of interest on the plot.
+
+.. code-block:: python
+
+   import pandas as pd
+   from setvis.plots import PlotSession
+
+   df = pd.read_csv("Synthetic_APC_DIAG_Fields.csv")
+
+   session = PlotSession(df)
+
+   session.add_plot(name="initial plot")
+
+
+.. image:: figures/setvis-screen-capture.png
+
+
+
 
 
 Acknowledgements

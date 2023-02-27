@@ -45,7 +45,11 @@ Bottleneck = { version = "^1.3", optional = true }
 
 [tool.poetry.extras]
 notebooks = ["notebook", "matplotlib", "scikit-learn"]
+
+# Read the Docs expects this to be named 'doc'.
+# Edit .readthedocs.yaml if changed
 doc = ["Sphinx", "pydata-sphinx-theme"]
+
 test = ["pytest"]
 
 performance-extras = ["numexpr", "Bottleneck"]

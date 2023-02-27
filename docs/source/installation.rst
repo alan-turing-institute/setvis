@@ -173,7 +173,7 @@ environment where the package is to be installed:
 
 
 Installing setvis with Poetry (developers)
-----------------------------------------
+------------------------------------------
 
 This project uses `Poetry <https://python-poetry.org/>`_ for
 dependency management and packaging.  To contribute to setvis
