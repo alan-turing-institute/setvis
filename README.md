@@ -42,6 +42,14 @@ After installing setvis, to follow theses tutorials interactively you will need 
 python -m jupyter notebook notebooks
 ```
 
+## Notice
+
+The setvis software is released under the Apache Licence, version 2.0. See [LICENCE](./LICENCE) for details.
+
+The data files [`./examples/datasets/simpsons - Format 1.csv`](https://github.com/alan-turing-institute/setvis/blob/main/examples/datasets/simpsons%20-%20Format%201.csv) and [`./examples/datasets/simpsons - Format 2.csv`](https://github.com/alan-turing-institute/setvis/blob/main/examples/datasets/simpsons%20-%20Format%202.csv), are based on a data file included in [UpSet](https://github.com/VCG/upset), copyright Visual Computing Group, Harvard, and distributed here under the terms of the MIT Licence.
+
+The other data files in `./examples/datasets/` are released under the [Creative Commons Attribution 4.0 International Licence (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/).
+
 
 ## Acknowledgements
 
