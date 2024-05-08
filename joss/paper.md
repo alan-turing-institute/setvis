@@ -72,10 +72,10 @@ Using a 44GB Ubuntu virtual machine, we compared SetVis (v0.1.0) with UpSetPlot 
 
 Tests were run with set-type data that contained two columns, 10,000 – 500,000 rows and 100 – 10,000 set intersections. UpSetPlot crashed when the 500,000 row dataset contained more than 500 intersections. By contrast, SetVis only used 113 MB RAM for that dataset (see Figure~\ref{fig:both}).
 
+![(A) Memory used by UpSetPlot and SetVis for set-type data with 500,000 rows, two columns and a range of set intersections. There were always 10\% more sets than intersections. (B) Memory used by UpSetPlot and SetVis for visualizing patterns of missing data. The number of cells equals the number of rows $\times$ columns in a dataset. \label{fig:both}](comb.png)
+
 The difference was even more pronounced when the packages were used to analyze missing data (10,000 – 500,000 rows; 10 – 700 columns; each row missing one value). UpSetPlot's memory scaled linearly with the number of cells (i.e., rows $\times$ columns) in a dataset, whereas SetVis's memory only increased gradually (see Figure~\ref{fig:both}). There was a similarly large difference when each row contained 1 – 50 missing values (100 – 10,000 set intersections in each dataset), because for missing data UpSetPlot keeps a copy of the input Pandas dataframe, as well as having a memory-hungry design.
 
-
-![(A) Memory used by UpSetPlot and SetVis for set-type data with 500,000 rows, two columns and a range of set intersections. There were always 10\% more sets than intersections. (B) Memory used by UpSetPlot and SetVis for the planned missingness pattern. The number of cells equals the number of rows $\times$ columns in a dataset. \label{fig:both}](comb.png)
 
 # Acknowledgements
 
