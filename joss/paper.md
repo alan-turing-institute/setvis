@@ -17,6 +17,7 @@ authors:
   orcid: 0000-0003-4066-8614
   affiliation: 2
 - name: O.T. Strickson
+  orcid: 0000-0002-8177-5582
   affiliation: 2
 bibliography: paper.bib
 aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
