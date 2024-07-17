@@ -8,7 +8,7 @@ Installation instructions
 Setting up the environment
 --------------------------
 
-Setvis places relatively few requirements on the system environment it
+Setvis is tested on Python `3.8` to `3.11` and places relatively few requirements on the system environment it
 is installed in.  It is recommended to use a Python installation based
 on a virtual environment or Conda.  This could be as part of an
 existing project, or one set up specifically for running setvis by

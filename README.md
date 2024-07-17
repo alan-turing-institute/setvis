@@ -15,7 +15,7 @@ It can be used both programmatically and interactively in a Jupyter notebook (po
 
 **For the complete installation instructions, consult [the installation page of the documentation](https://setvis.readthedocs.io/en/latest/installation.html), which includes information on some extra installation options and setting up a suitable environment on several platforms.**
 
-We recommend installing setvis in a python virtual environment or Conda environment.
+We recommend installing setvis in a python virtual environment or Conda environment. Setvis is tested on Python `3.8` to `3.11` as can be seen in the CI configuration in the package repository.
 
 To install setvis, most users should run:
 
