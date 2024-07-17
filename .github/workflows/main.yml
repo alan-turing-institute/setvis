@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.8', '3.10', '3.11']
+        python-version: ['3.8', '3.11', '3.12']
         os: [windows-latest, ubuntu-latest]
 
     steps:
@@ -39,7 +39,7 @@ jobs:
         poetry run pytest
 
     - name: Notebooks [Linux]
-      if: runner.os == 'Linux' && matrix.python-version == '3.8'
+      if: runner.os == 'Linux' && matrix.python-version == '3.12'
       run: |
         pip install -e '.[all]'
         cd tests && bash check_notebooks.sh
