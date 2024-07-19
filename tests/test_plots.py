@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from pathlib import Path
 import bokeh.plotting
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 from setvis.plots import (
     PlotBase,
