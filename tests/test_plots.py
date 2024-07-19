@@ -67,7 +67,7 @@ def test_SetBarChart(simpsons_format1):
         Membership.from_data_frame(simpsons_format1, set_mode=True)
     )
     p = set_bar.plot()
-    assert (isinstance(p, bokeh.plotting.Figure))
+    assert (isinstance(p, bokeh.plotting.figure))
     seq = [1, 2]
     indi_to_sel = set_bar.plot_indices_to_selection(seq)
     sel_to_indi = set_bar.selection_to_plot_indices(indi_to_sel)
@@ -87,7 +87,7 @@ def test_SetCardinalityHistogram(simpsons_format1):
     assert (card_hist.title == "Set cardinality histogram")
     assert (card_hist.xlabel == "Cardinality of set")
     p = card_hist.plot()
-    assert (isinstance(p, bokeh.plotting.Figure))
+    assert (isinstance(p, bokeh.plotting.figure))
 
 
 def test_IntersectionBarChart(simpsons_format1):
@@ -102,7 +102,7 @@ def test_IntersectionBarChart(simpsons_format1):
     )
     assert (card_hist.title == "Intersection bar chart")
     p = card_hist.plot()
-    assert (isinstance(p, bokeh.plotting.Figure))
+    assert (isinstance(p, bokeh.plotting.figure))
     seq = [0, 1, 2]
     indi_to_sel = card_hist.plot_indices_to_selection(seq)
     sel_to_indi = card_hist.selection_to_plot_indices(indi_to_sel)

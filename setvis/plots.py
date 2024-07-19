@@ -9,7 +9,7 @@ from bokeh.models import (
 )
 from bokeh.palettes import Oranges256
 from bokeh.transform import linear_cmap
-from bokeh.models.widgets import Panel, Tabs
+from bokeh.models import Panel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
 import bokeh.server
@@ -36,7 +36,7 @@ class PlotBase:
     ):
         raise NotImplementedError()
 
-    def plot(self) -> bokeh.plotting.Figure:
+    def plot(self) -> bokeh.plotting.figure:
         raise NotImplementedError()
 
     def selection_to_plot_indices(self, selection: Selection) -> Sequence[int]:
@@ -160,7 +160,7 @@ class SetBarChart(PlotBase):
         self.xlabel = "Set" if set_mode else "Fields"
         self.ylabel = "Cardinality" if set_mode else "Number of missing values"
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the set bar chart plot.
 
         Parameters
@@ -181,7 +181,7 @@ class SetBarChart(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             bar chart plot
         """
         kwargs.setdefault("title", self.title)
@@ -287,7 +287,7 @@ class SetCardinalityHistogram(PlotBase):
         )
         self.linecolor = "white"
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the set cardinality histogram plot.
 
         Parameters
@@ -306,7 +306,7 @@ class SetCardinalityHistogram(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             histogram plot
         """
         kwargs.setdefault("title", self.title)
@@ -446,7 +446,7 @@ class IntersectionBarChart(PlotBase):
             "Number of intersections" if set_mode else "Number of records"
         )
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the intersection bar chart plot.
 
         Parameters
@@ -465,7 +465,7 @@ class IntersectionBarChart(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             bar chart plot. The default is
         """
         kwargs.setdefault("title", self.title)
@@ -575,7 +575,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             "Number of intersections" if set_mode else "Number of combinations"
         )
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the intersection cardinality histogram plot.
 
         Parameters
@@ -594,7 +594,7 @@ class IntersectionCardinalityHistogram(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             histogram plot
         """
         kwargs.setdefault("title", self.title)
@@ -708,7 +708,7 @@ class IntersectionDegreeHistogram(PlotBase):
             "Number of intersections" if set_mode else "Number of combinations"
         )
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the intersection degree histogram.
 
         Parameters
@@ -727,7 +727,7 @@ class IntersectionDegreeHistogram(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             histogram plot
         """
         kwargs.setdefault("title", self.title)
@@ -880,7 +880,7 @@ class IntersectionHeatmap(PlotBase):
         self.fill = "#cccccc"
         self.grid_visible = False
 
-    def plot(self, **kwargs) -> bokeh.plotting.Figure:
+    def plot(self, **kwargs) -> bokeh.plotting.figure:
         """Creates a figure with the intersection heatmap plot.
 
         Parameters
@@ -899,7 +899,7 @@ class IntersectionHeatmap(PlotBase):
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             heatmap plot
         """
         kwargs.setdefault("title", self.title)
@@ -1053,7 +1053,7 @@ class PlotSession:
 
         Returns
         -------
-        bokeh.plotting.Figure
+        bokeh.plotting.figure
             plot to be added to tabbed layout
         """
         parent = self._selection_history.parent(name)
