@@ -1092,7 +1092,7 @@ class PlotSession:
 
         plot_options = kwargs.pop("plot_options", {})
         plot_options = plot_options.get(tabname, {})
-        plot_options.setdefault("sizing_mode", "stretch_both")
+        plot_options.setdefault("sizing_mode", "stretch_width")
 
         kwargs.update(plot_options)
 
