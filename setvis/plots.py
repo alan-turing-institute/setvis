@@ -9,7 +9,7 @@ from bokeh.models import (
 )
 from bokeh.palettes import Oranges256
 from bokeh.transform import linear_cmap
-from bokeh.models import Panel, Tabs
+from bokeh.models import TabPanel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
 import bokeh.server
@@ -1192,7 +1192,7 @@ class PlotSession:
             p1 = self._add_subplot(
                 SetBarChart, name, "set_bar_chart", **kwargs,
             )
-            tab1 = Panel(
+            tab1 = TabPanel(
                 child=p1,
                 title="Set bar chart" if self._set_mode else "Value bar chart",
             )
@@ -1203,7 +1203,7 @@ class PlotSession:
                 "intersection_heatmap",
                 **kwargs,
             )
-            tab2 = Panel(
+            tab2 = TabPanel(
                 child=p2,
                 title="Intersection heatmap"
                 if self._set_mode
@@ -1216,7 +1216,7 @@ class PlotSession:
                 "intersection_bar_chart",
                 **kwargs,
             )
-            tab3 = Panel(
+            tab3 = TabPanel(
                 child=p3,
                 title="Intersection bar chart"
                 if self._set_mode
@@ -1229,7 +1229,7 @@ class PlotSession:
                 "set_cardinality_histogram",
                 **kwargs,
             )
-            tab4 = Panel(
+            tab4 = TabPanel(
                 child=p4,
                 title="Set cardinality histogram"
                 if self._set_mode
@@ -1242,7 +1242,7 @@ class PlotSession:
                 "intersection_cardinality_histogram",
                 **kwargs,
             )
-            tab5 = Panel(
+            tab5 = TabPanel(
                 child=p5,
                 title="Intersection cardinality histogram"
                 if self._set_mode
@@ -1255,7 +1255,7 @@ class PlotSession:
                 "intersection_degree_histogram",
                 **kwargs,
             )
-            tab6 = Panel(
+            tab6 = TabPanel(
                 child=p6,
                 title="Intersection degree histogram"
                 if self._set_mode
