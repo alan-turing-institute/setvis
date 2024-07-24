@@ -145,7 +145,7 @@ class SetBarChart(PlotBase):
 
         self.bar_width = 0.5
         self.tools = [
-            "box_select",
+            "xbox_select",
             "tap",
             "box_zoom",
             "pan",
@@ -271,7 +271,7 @@ class SetCardinalityHistogram(PlotBase):
             initial_selection
         )
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = ["xbox_select", "tap", "reset", "save"]
         self.title = (
             "Set cardinality histogram"
             if set_mode
@@ -436,7 +436,7 @@ class IntersectionBarChart(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = ["xbox_select", "tap", "reset", "save"]
         self.linecolor = "white"
         self.title = (
             "Intersection bar chart" if set_mode else "Combination bar chart"
@@ -561,7 +561,7 @@ class IntersectionCardinalityHistogram(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = ["xbox_select", "tap", "reset", "save"]
         self.height = 960
         self.width = 960
         self.linecolor = "white"
@@ -692,7 +692,7 @@ class IntersectionDegreeHistogram(PlotBase):
         )
 
         self.bar_width = 1.0
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = ["xbox_select", "tap", "reset", "save"]
         self.height = 960
         self.width = 960
         self.linecolor = "white"
@@ -876,7 +876,7 @@ class IntersectionHeatmap(PlotBase):
 
         self.width = 960
         self.height = 960
-        self.tools = ["box_select", "tap", "reset", "save"]
+        self.tools = ["ybox_select", "tap", "reset", "save"]
         self.fill = "#cccccc"
         self.grid_visible = False
 
