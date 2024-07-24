@@ -33,7 +33,7 @@ pydantic = ">=1.8,<3"
 tomli = "^2.0"
 setuptools = ">=68.1"
 
-notebook = { version = "^6.4", optional = true }
+notebook = { version = ">=6.4,<8", optional = true }
 matplotlib = { version = "^3.4", optional = true }
 scipy = { version = "^1.7", optional = true }
 scikit-learn = { version = ">=0.2,<2", optional = true }
