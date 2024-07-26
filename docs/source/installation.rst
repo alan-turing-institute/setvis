@@ -24,10 +24,10 @@ Conda
 .. code:: bash
 
    # Create a new conda environment
-   conda create -n paceenv python=3.8
+   conda create -n setvisenv python=3.12
 
    # Activate the newly-created conda environment
-   conda activate paceenv
+   conda activate setvisenv
 
    # Install git if it is not available on your system.
    # This command is unnecessary if git is already installed.
