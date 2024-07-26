@@ -136,10 +136,10 @@ This section applies whatever the source of the installation (from
 PyPI or GitHub).  Setvis supports several optional features that can be
 installed by passing various extra dependency flags to pip.
 
-For instance: ``pip install ".[notebook]"`` (which installs the
+For instance: ``pip install ".[notebooks]"`` (which installs the
 notebook dependencies).
 
-- ``extra``: ``[extra]`` is the same as ``[notebook,doc,test]``
+- ``extra``: ``[extra]`` is the same as ``[notebooks,doc,test]``
 - ``all``: ``[all]`` is the same as
   ``[notebook,doc,test,performance-extras,db]`` (includes all of the
   below)
