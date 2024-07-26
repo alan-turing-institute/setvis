@@ -20,7 +20,7 @@ We recommend installing setvis in a python virtual environment or Conda environm
 To install setvis, most users should run:
 
 ```
-pip install 'setvis[notebook]'
+pip install 'setvis[notebooks]'
 ```
 
 This will include everything to run setvis in a notebook, and to run the tutorial examples that do not need a database connection.
