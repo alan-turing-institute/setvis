@@ -21,11 +21,6 @@ Once you are happy with your environmental set-up, continue to
 Conda
 .....
 
-This configuration has been tested with:
-
-- `Miniconda3 <https://docs.conda.io/en/latest/miniconda.html>`_
-  (based on Conda 4.10.3) with Python 3.8 on Windows 10 Pro 20H2
-
 .. code:: bash
 
    # Create a new conda environment
@@ -48,9 +43,6 @@ Next, :ref:`install setvis <installing-setvis>`.
 Python venv (virtual environment)
 .................................
 
-This configuration has been tested with:
-
-- Python 3.8.2 on MacOS 10.15 (Catalina)
 
 .. code:: bash
 
