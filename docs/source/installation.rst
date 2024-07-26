@@ -34,7 +34,7 @@ Conda
    conda install git
 
    # Install the Bottleneck conda package and its dependencies
-   conda install Bottleneck=1.3.2
+   conda install Bottleneck
 
 
 Next, :ref:`install setvis <installing-setvis>`.
