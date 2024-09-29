@@ -1,7 +1,9 @@
-Contributors
-============
+.. _setvis-documentation:
 
-This section contains information useful for anyone planning to contribute to setvis.
+setvis documentation
+====================
+
+This section contains information useful for anyone planning to generate the documentation of setvis locally.
 
 Generating documentation locally
 --------------------------------
