@@ -16,3 +16,8 @@ The setvis package includes the following notebooks:
 
 ## Other
 - [Utility - Information Gain Ratio](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Utility%20-%20Information%20Gain%20Ratio.ipynb) This notebook defines and describes a function for computing the information gain ratio, used by Tutorials 2 and 3.
+
+# Visualizations
+There are six visualizations in setvis. These are described using [Example - import data to visualize missingness](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb).
+
+<p align="center">A value bar chart shows the number of missing values in each field.</p>
