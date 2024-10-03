@@ -22,7 +22,7 @@ There are six visualizations in setvis. These are described using [Example - imp
 
 <p align="center">The value bar chart shows the number of missing values (Y axis) in each field (X axis).</p>
 
-<p align="center">The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour). The most common combination is records that are missing nine fields (DIAG_02, DIAG_03, DIAG_04, DIAG_05, DIAG_06, DIAG_07, DIAG_08, DIAG_09 AND DIAG_10). The other six fields are never missing (DIAG_01, ADMIAGE, ADMIMETH, Mortality, PROCODE3, SEX).</p>
+<p align="center">The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour).</p>
 
 <p align="center">The combination bar chart shows the number of records (Y axis) in each combination of missing values (X axis).</p>
 
