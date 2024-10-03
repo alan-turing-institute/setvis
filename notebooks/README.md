@@ -20,4 +20,14 @@ The setvis package includes the following notebooks:
 # Visualizations
 There are six visualizations in setvis. These are described using [Example - import data to visualize missingness](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb).
 
-<p align="center">A value bar chart shows the number of missing values in each field.</p>
+<p align="center">The value bar chart shows the number of missing values (Y axis) in each field (X axis).</p>
+
+<p align="center">The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour). The most common combination is records that are missing nine fields (DIAG_02, DIAG_03, DIAG_04, DIAG_05, DIAG_06, DIAG_07, DIAG_08, DIAG_09 AND DIAG_10). The other six fields are never missing (DIAG_01, ADMIAGE, ADMIMETH, Mortality, PROCODE3, SEX).</p>
+
+<p align="center">The combination bar chart shows the number of records (Y axis) in each combination of missing values (X axis).</p>
+
+<p align="center">The value count histogram shows the distribution of the number of missing values (X axis) and number of fields (Y-axis). This helps setvis scale to datasets with many fields.</p>
+
+<p align="center">The combination count histogram shows the distribution of the number of records (X axis) and number of combinations of missing values (Y-axis). This helps setvis scale to datasets with many fields.</p>
+
+<p align="center">The combination length histogram shows the distribution of the length (X axis) and number of combinations of missing values (Y-axis). This helps setvis scale to datasets with many fields.</p>
