@@ -24,11 +24,15 @@ There are six visualizations in setvis. These are described using [Example - imp
 
 ![combination heatmap](images/combination_heatmap.JPG)
 <p align="center">The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour).</p>
+
 ![combination bar chart](images/combination_bar_chart.JPG)
 <p align="center">The combination bar chart shows the number of records (Y axis) in each combination of missing values (X axis).</p>
+
 ![value count histogram](value_count_histogram.JPG)
 <p align="center">The value count histogram shows the distribution of the number of missing values (X axis) and number of fields (Y-axis). This helps setvis scale to datasets with many fields.</p>
+
 ![combination count histogram](combination_count_histogram.JPG)
 <p align="center">The combination count histogram shows the distribution of the number of records (X axis) and number of combinations of missing values (Y-axis). This helps setvis scale to datasets with many fields.</p>
+
 ![combination length histogram](combination_length_histogram.JPG)
 <p align="center">The combination length histogram shows the distribution of the length (X axis) and number of combinations of missing values (Y-axis). This helps setvis scale to datasets with many fields.</p>
