@@ -19,7 +19,7 @@ The setvis package includes the following notebooks:
 
 # Visualizations
 There are six visualizations in setvis. These are described using [Example - import data to visualize missingness](https://github.com/alan-turing-institute/setvis/blob/main/notebooks/Example%20-%20import%20data%20to%20visualize%20missingness.ipynb).
-<p align="center">![value bar chart](images/value_bar_chart.JPG)</p>
+![value bar chart](images/value_bar_chart.JPG)
 <p align="center">The value bar chart shows the number of missing values (Y axis) in each field (X axis).</p>
 
 <p align="center">The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour).</p>
