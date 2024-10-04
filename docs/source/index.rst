@@ -62,7 +62,7 @@ refined by choosing elements of interest on the plot.
 
 .. image:: figures/setvis-screen-capture.png
 
-
+The combination heatmap shows the dataset’s fields (X axis), each combination of missing values (Y axis) and the number of records that are in each combination (colour). The most common combination is records that are missing nine fields (DIAG_02 - DIAG_10). The other six fields are never missing (DIAG_01, ADMIAGE, ADMIMETH, Mortality, PROCODE3, SEX).
 
 
 
