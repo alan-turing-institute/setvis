@@ -147,8 +147,6 @@ class SetBarChart(PlotBase):
         self.tools = [
             "xbox_select",
             "tap",
-            "box_zoom",
-            "pan",
             "reset",
             "save",
             HelpTool(
