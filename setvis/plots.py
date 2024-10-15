@@ -12,7 +12,7 @@ from bokeh.transform import linear_cmap
 from bokeh.models import TabPanel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
-import bokeh.server
+import bokeh.server.server
 import pandas as pd
 import numpy as np
 import logging
