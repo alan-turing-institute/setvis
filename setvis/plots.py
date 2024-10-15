@@ -1287,9 +1287,11 @@ class PlotSession:
         else:
             server = bokeh.server.server.Server({"/": plot_app}, port=0)
             server.start()
-            from IPython.core.display import display, HTML
+
+            logger.info(f"Bokeh server for plot {name} started at http://localhost:{server.port}/")
 
             if html_display_link:
+                from IPython.display import display, HTML
                 display(
                     HTML(
                         f"<a href='http://localhost:{server.port}' target='_blank' rel='noopener noreferrer'>"
