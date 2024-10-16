@@ -613,7 +613,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
+        p.xaxis.ticker = [x for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
@@ -746,7 +746,7 @@ class IntersectionDegreeHistogram(PlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
+        p.xaxis.ticker = [x for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
