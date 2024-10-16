@@ -13,12 +13,10 @@ data <https://en.wikipedia.org/wiki/Missing_data>`_ in a dataset).
 It can also be used to visualize set membership of which data
 missingness is a special case.
 
-The plotting and interactive workflow of Setvis (see :ref:`plots`)
-is designed for use within a Jupyter notebook (although it is possible
-to run outside of a notebook, see :ref:`plot_outside_notebook`).
-
-The other components of Setvis can be used interactively or
-non-interactively.
+The plotting and interactive workflow of Setvis (see :ref:`plots`) is
+designed to be run within a Jupyter notebook (although it is possible
+to run outside Jupyter, see :ref:`plot_outside_notebook`).  The other
+components of Setvis can be used interactively or programmatically.
 
 At the moment, setvis can load data from `pandas
 <https://pandas.pydata.org/>`_ dataframes, csv files, and also
