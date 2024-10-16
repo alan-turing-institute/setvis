@@ -193,7 +193,7 @@ def set_cardinality_histogram_data(
     bin_ids = np.fmin(np.digitize(data_subset, edges), bins - 1)
     bin_ids += 1
     data["_bin_id"] = 1
-    data["_bin_id"].loc[data_subset.index] = bin_ids[:, 0]
+    data.loc[data_subset.index, "_bin_id"] = bin_ids[:, 0]
 
     # dict_data is for plotting
     keys = [x + 1 for x in range(bins)]

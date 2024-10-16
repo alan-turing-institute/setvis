@@ -21,25 +21,20 @@ Once you are happy with your environmental set-up, continue to
 Conda
 .....
 
-This configuration has been tested with:
-
-- `Miniconda3 <https://docs.conda.io/en/latest/miniconda.html>`_
-  (based on Conda 4.10.3) with Python 3.8 on Windows 10 Pro 20H2
-
 .. code:: bash
 
    # Create a new conda environment
-   conda create -n paceenv python=3.8
+   conda create -n setvisenv python=3.12
 
    # Activate the newly-created conda environment
-   conda activate paceenv
+   conda activate setvisenv
 
    # Install git if it is not available on your system.
    # This command is unnecessary if git is already installed.
    conda install git
 
    # Install the Bottleneck conda package and its dependencies
-   conda install Bottleneck=1.3.2
+   conda install Bottleneck
 
 
 Next, :ref:`install setvis <installing-setvis>`.
@@ -48,9 +43,6 @@ Next, :ref:`install setvis <installing-setvis>`.
 Python venv (virtual environment)
 .................................
 
-This configuration has been tested with:
-
-- Python 3.8.2 on MacOS 10.15 (Catalina)
 
 .. code:: bash
 
@@ -144,10 +136,10 @@ This section applies whatever the source of the installation (from
 PyPI or GitHub).  Setvis supports several optional features that can be
 installed by passing various extra dependency flags to pip.
 
-For instance: ``pip install ".[notebook]"`` (which installs the
+For instance: ``pip install ".[notebooks]"`` (which installs the
 notebook dependencies).
 
-- ``extra``: ``[extra]`` is the same as ``[notebook,doc,test]``
+- ``extra``: ``[extra]`` is the same as ``[notebooks,doc,test]``
 - ``all``: ``[all]`` is the same as
   ``[notebook,doc,test,performance-extras,db]`` (includes all of the
   below)
