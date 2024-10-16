@@ -5,7 +5,9 @@
 
 Setvis is a python library for visualising set membership and patterns of missingness in data.
 
-It can be used both programmatically and interactively in a Jupyter notebook (powered by [Bokeh](https://docs.bokeh.org/en/latest/index.html) widgets).  It operates on data using a memory efficient architecture, and supports loading data from flat files, Pandas dataframes, and directly from a Postgres database.
+The plotting and interactive workflow of Setvis is designed for use within a Jupyter notebook (although it is possible to run outside Jupyter). The other components of Setvis can be used interactively or programmatically. The interactive plots are powered by [Bokeh](https://docs.bokeh.org/en/latest/index.html) widgets.
+
+It operates on data using a memory efficient architecture, and supports loading data from flat files, Pandas dataframes, and directly from a Postgres database.
 
 ## Documentation
 
