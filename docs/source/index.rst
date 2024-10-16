@@ -14,7 +14,7 @@ It can also be used to visualize set membership of which data
 missingness is a special case.
 
 The plotting and interactive workflow of Setvis (see :ref:`plots`) is
-designed to be run within a Jupyter notebook (although it is possible
+designed for use within a Jupyter notebook (although it is possible
 to run outside Jupyter, see :ref:`plot_outside_notebook`).  The other
 components of Setvis can be used interactively or programmatically.
 
