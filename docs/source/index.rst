@@ -33,9 +33,10 @@ Contents
    :maxdepth: 2
 
    installation
+   api_reference
    tutorials
    documentation
-   api_reference
+   contributing
 
 Introductory Example
 ====================
