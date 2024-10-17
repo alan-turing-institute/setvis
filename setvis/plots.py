@@ -12,7 +12,7 @@ from bokeh.transform import linear_cmap
 from bokeh.models import TabPanel, Tabs
 from bokeh.events import SelectionGeometry
 import bokeh.io
-import bokeh.server
+import bokeh.server.server
 import pandas as pd
 import numpy as np
 import logging
@@ -147,8 +147,6 @@ class SetBarChart(PlotBase):
         self.tools = [
             "xbox_select",
             "tap",
-            "box_zoom",
-            "pan",
             "reset",
             "save",
             HelpTool(
@@ -613,7 +611,7 @@ class IntersectionCardinalityHistogram(PlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
+        p.xaxis.ticker = [x for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
@@ -746,7 +744,7 @@ class IntersectionDegreeHistogram(PlotBase):
             source=self.source,
             line_color=self.linecolor,
         )
-        p.xaxis.ticker = [x - 0.5 for x in range(self._bins)]
+        p.xaxis.ticker = [x for x in range(self._bins)]
         p.xaxis.major_label_overrides = self._get_xtick_labels()
         p.xaxis.axis_label = self.xlabel
         p.yaxis.axis_label = self.ylabel
@@ -1289,9 +1287,11 @@ class PlotSession:
         else:
             server = bokeh.server.server.Server({"/": plot_app}, port=0)
             server.start()
-            from IPython.core.display import display, HTML
+
+            logger.info(f"Bokeh server for plot {name} started at http://localhost:{server.port}/")
 
             if html_display_link:
+                from IPython.display import display, HTML
                 display(
                     HTML(
                         f"<a href='http://localhost:{server.port}' target='_blank' rel='noopener noreferrer'>"
