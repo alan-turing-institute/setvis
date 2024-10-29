@@ -21,9 +21,9 @@ authors:
   affiliation: 2
 bibliography: paper.bib
 affiliations:
-- name: University of Leeds, Leeds, UK
+- name: University of Leeds, Leeds, United Kingdom
   index: 1
-- name: Alan Turing Institute, London, UK
+- name: Alan Turing Institute, London, United Kingdom
   index: 2
 ---
 
