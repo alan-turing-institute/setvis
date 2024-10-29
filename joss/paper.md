@@ -71,7 +71,7 @@ In SetVis, these mappings are stored as a pair of Pandas dataframes (in an insta
 # Technical evaluation
 Using a 44GB Ubuntu virtual machine, we compared SetVis (v0.1.0) with UpSetPlot (v0.8.0) based on two criteria: memory use and compute time. The greatest difference was in memory usage. The UpSetR package [@conway2017upsetr] was not tested, but uses a similar data structure to UpSetPlot[@nothman2022].
 
-Tests were run with set-type data that contained two columns, 500,000 rows and 100 – 10,000 set intersections. UpSetPlot crashed when the 500,000 row dataset contained more than 500 intersections. By contrast, SetVis only used 113 MB RAM for that dataset (see Figure \ref{fig:both}A).
+Tests were run with set-type data that contained two columns, 500,000 rows and 100 – 10,000 set intersections. UpSetPlot crashed when the 500,000 row dataset contained more than 500 intersections. By contrast, SetVis only used 113 MB RAM for 500,000 rows with the maximum 10,000 set intersections (see Figure \ref{fig:both}A).
 
 ![(A) Memory used by UpSetPlot and SetVis for set-type data with 500,000 rows, two columns and a range of set intersections. There were always 10\% more sets than intersections. (B) Memory used by UpSetPlot and SetVis for visualizing patterns of missing data. The number of cells equals the number of rows $\times$ columns in a dataset. \label{fig:both}](comb.png)
 
