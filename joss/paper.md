@@ -20,8 +20,6 @@ authors:
   orcid: 0000-0002-8177-5582
   affiliation: 2
 bibliography: paper.bib
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 affiliations:
 - name: University of Leeds, Leeds, UK
   index: 1
