@@ -67,7 +67,7 @@ is a bijection between an intersection index and the explicit representation of 
 In SetVis, these mappings are stored as a pair of Pandas dataframes (in an instance of the \textit{Membership} class), $intersectionId$ of size $O(N)$ and $intersectionMembers$ of size $O(RK)$, for a combined total of $O(N + RK)$ storage.
 
 # Technical evaluation
-Using a 44GB Ubuntu virtual machine, we compared SetVis (v0.1.0) with UpSetPlot (v0.8.0) based on two criteria: memory use and compute time. The greatest difference was in memory usage. The UpSetR package [@conway2017upsetr] was not tested, but uses a similar data structure to UpSetPlot[@nothman2022].
+Using a Ubuntu virtual machine with 44GB of RAM, we compared SetVis (v0.1.0) with UpSetPlot (v0.8.0) based on two criteria: memory use and compute time. The greatest difference was in memory usage. The UpSetR package [@conway2017upsetr] was not tested, but uses a similar data structure to UpSetPlot [@nothman2022].
 
 Tests were run with set-type data that contained two columns, 500,000 rows and 100 – 10,000 set intersections. UpSetPlot crashed when the 500,000 row dataset contained more than 500 intersections. By contrast, SetVis only used 113 MB RAM for that dataset (see Figure \ref{fig:both}A).
 
