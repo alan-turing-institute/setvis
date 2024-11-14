@@ -53,7 +53,7 @@ The data files [`./examples/datasets/simpsons - Format 1.csv`](https://github.co
 
 The other data files in `./examples/datasets/` are released under the [Creative Commons Attribution 4.0 International Licence (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-## Citating setvis
+## Citing setvis
 ```bibtex
 @article{Ruddle2024, doi = {10.21105/joss.06925}, url = {https://doi.org/10.21105/joss.06925}, year = {2024}, publisher = {The Open Journal}, volume = {9}, number = {103}, pages = {6925}, author = {R.a. Ruddle and L. Hama and P Wochner and O.t. Strickson}, title = {SetVis: Visualizing Large Numbers of Sets and Intersections}, journal = {Journal of Open Source Software} }
 ```
