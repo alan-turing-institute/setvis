@@ -2,6 +2,7 @@
 
 [![Python Package](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml/badge.svg)](https://github.com/alan-turing-institute/setvis/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/setvis/badge/?version=latest)](https://setvis.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06925/status.svg)](https://doi.org/10.21105/joss.06925)
 
 Setvis is a python library for visualising set membership and patterns of missingness in data.
 
@@ -52,7 +53,10 @@ The data files [`./examples/datasets/simpsons - Format 1.csv`](https://github.co
 
 The other data files in `./examples/datasets/` are released under the [Creative Commons Attribution 4.0 International Licence (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-
+## Citing setvis
+```bibtex
+@article{Ruddle2024, doi = {10.21105/joss.06925}, url = {https://doi.org/10.21105/joss.06925}, year = {2024}, publisher = {The Open Journal}, volume = {9}, number = {103}, pages = {6925}, author = {R.a. Ruddle and L. Hama and P Wochner and O.t. Strickson}, title = {SetVis: Visualizing Large Numbers of Sets and Intersections}, journal = {Journal of Open Source Software} }
+```
 ## Acknowledgements
 
 The development of the setvis software was supported by funding from the Engineering and Physical Sciences Research Council (EP/N013980/1; EP/R511717/1) and the Alan Turing Institute.
